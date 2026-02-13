@@ -13,9 +13,7 @@ export default function Home() {
           </div>
           <div className="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
             <h2 className="text-lg font-semibold">Subastas Online</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Puja desde cualquier lugar
-            </p>
+            <p className="mt-2 text-sm text-muted-foreground">Puja desde cualquier lugar</p>
           </div>
         </div>
       </div>
