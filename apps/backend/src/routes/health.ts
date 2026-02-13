@@ -1,5 +1,10 @@
 import { Router } from 'express';
-import type { ApiResponse } from '@martillo/shared';
+
+type ApiResponse<T> = {
+  success: boolean;
+  data: T;
+  message?: string;
+};
 
 export const healthRouter = Router();
 
