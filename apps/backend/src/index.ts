@@ -56,8 +56,7 @@ process.on('unhandledRejection', (reason) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  // Keep startup visibility in Railway logs even with production logger level.
-  console.log(`[Martillo API] Server running on 0.0.0.0:${PORT}`);
+  logger.warn(`[Martillo API] Server running on 0.0.0.0:${PORT}`);
 });
 
 export default app;

@@ -54,6 +54,7 @@
       - `POST /api/auth/login` -> 5/15m
       - `POST /api/auth/register` -> 3/h
       - `POST /api/lots/:lotId/media` -> 20/h por usuario
+    - `console.log` en runtime backend (`src/`) reemplazado por logger.
 
 ---
 
@@ -424,7 +425,7 @@ npm install winston -w apps/backend
 - [ ] Crear `logger.ts` con winston:
   - Production: solo warn/error, sin datos de usuario
   - Development: logs completos
-- [ ] Reemplazar todos los `console.log` por el logger
+- [x] Reemplazar todos los `console.log` por el logger (runtime `src/`)
 - [x] Verificar rate limits especÃ­ficos:
   - `POST /api/auth/login` â†’ 5/15min por IP âœ… ya existe
   - `POST /api/auth/register` â†’ 3/hora por IP âœ… implementado
