@@ -41,6 +41,8 @@
   - Frontend S8 (esqueleto E2E):
     - Playwright base configurado (`apps/frontend/playwright.config.ts`).
     - Specs base creadas: `auth.spec.ts`, `catalog.spec.ts`, `bidder-flow.spec.ts`, `auction.spec.ts`.
+  - Backend S8:
+    - `/health` mejorado con estado `ok/degraded/error`, chequeo DB/Redis, version y uptime.
 
 ---
 
@@ -484,7 +486,7 @@ npm install swagger-ui-express swagger-jsdoc -w apps/backend
   - Frontend: `@sentry/nextjs` con DSN desde env
   - Backend: `@sentry/node` en error handler
   - `beforeSend`: filtrar PII (emails, RUT, tokens)
-- [ ] Mejorar `GET /health`:
+- [x] Mejorar `GET /health`:
   ```json
   {
     "status": "ok | degraded | error",
