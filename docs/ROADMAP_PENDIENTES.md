@@ -59,6 +59,7 @@
   - Backend S8:
     - Swagger base integrado (`/api/docs`) solo en no-producción.
     - Documentación OpenAPI agregada para login, auctions public, bidder register, payment webhook y eventos socket.
+    - Script de verificación de backup/DB agregado (`apps/backend/scripts/verify-backup.js`).
   - Auditoría de dependencias ejecutada:
     - `npm audit --audit-level=moderate` realizado.
     - Pendientes documentados en `docs/SECURITY_REPORT_2026-02-14.md` (requieren upgrades mayores de Next/ESLint config).
@@ -523,6 +524,7 @@ npm install swagger-ui-express swagger-jsdoc -w apps/backend
   - `POST /api/payments/flow/webhook`
   - `GET /api/auctions/public`
   - Documentar eventos Socket.io
+- [x] Script de verificación de backup/DB (`npm run qa:verify-backup`)
 
 ---
 
