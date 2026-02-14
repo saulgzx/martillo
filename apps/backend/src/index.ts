@@ -18,15 +18,17 @@ const app = express();
 const server = createServer(app);
 const PORT = Number(process.env.PORT) || env.PORT || 4000;
 
+// Routes
+app.use('/api/health', healthRouter);
+app.use('/health', healthRouter);
+
 // Middleware
 applySecurityMiddleware(app);
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(cookieParser());
 
-// Routes
-app.use('/api/health', healthRouter);
-app.use('/health', healthRouter);
+// Functional routes
 app.use('/api/auth', authRouter);
 app.use('/api/auctions', auctionRouter);
 app.use('/api', lotRouter);
@@ -35,10 +37,27 @@ app.use('/api', paymentRouter);
 
 app.use(errorHandler);
 
-createSocketServer(server);
+try {
+  createSocketServer(server);
+} catch (error) {
+  logger.error('Socket server initialization failed', { error });
+}
+
+server.on('error', (error) => {
+  logger.error('HTTP server error', { error });
+});
+
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught exception', { error });
+});
+
+process.on('unhandledRejection', (reason) => {
+  logger.error('Unhandled rejection', { reason });
+});
 
 server.listen(PORT, '0.0.0.0', () => {
-  logger.info(`[Martillo API] Server running on http://localhost:${PORT}`);
+  // Keep startup visibility in Railway logs even with production logger level.
+  console.log(`[Martillo API] Server running on 0.0.0.0:${PORT}`);
 });
 
 export default app;

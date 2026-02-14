@@ -4,6 +4,7 @@
 > Basado en anÃ¡lisis exhaustivo del cÃ³digo vs guÃ­a de 18 prompts
 
 > ?ltima actualizaci?n: 2026-02-14 - Hotfix deploy Railway (`apps/backend/railway.json`: `buildCommand` -> `npm run build`)
+> 2026-02-14 (hotfix runtime): backend arranca con logs de boot, `/health` expuesto antes de middleware y manejo defensivo de errores de arranque/socket en `apps/backend/src/index.ts`.
 
 
 

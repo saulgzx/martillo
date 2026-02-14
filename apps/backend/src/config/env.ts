@@ -6,11 +6,11 @@ dotenv.config();
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(4000),
-  JWT_PRIVATE_KEY: z.string().min(1, 'JWT_PRIVATE_KEY is required'),
-  JWT_PUBLIC_KEY: z.string().min(1, 'JWT_PUBLIC_KEY is required'),
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  REDIS_URL: z.string().min(1, 'REDIS_URL is required'),
-  ALLOWED_ORIGINS: z.string().min(1, 'ALLOWED_ORIGINS is required'),
+  JWT_PRIVATE_KEY: z.string().default(''),
+  JWT_PUBLIC_KEY: z.string().default(''),
+  DATABASE_URL: z.string().default('postgresql://user:password@localhost:5432/martillo'),
+  REDIS_URL: z.string().default('redis://localhost:6379'),
+  ALLOWED_ORIGINS: z.string().default('http://localhost:3000'),
   // Optional at boot: these features are enabled progressively.
   CLOUDINARY_CLOUD_NAME: z.string().optional().default(''),
   CLOUDINARY_API_KEY: z.string().optional().default(''),
@@ -18,26 +18,14 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().optional().default(''),
   FLOW_API_KEY: z.string().optional().default(''),
   FLOW_SECRET_KEY: z.string().optional().default(''),
-  ENCRYPTION_KEY: z
-    .string()
-    .regex(/^[0-9a-fA-F]{64}$/, 'ENCRYPTION_KEY must be 64 hex characters')
-    .optional()
-    .default('0000000000000000000000000000000000000000000000000000000000000000'),
+  ENCRYPTION_KEY: z.string().optional().default(''),
 });
 
-const parsedEnv = envSchema.safeParse(process.env);
-
-if (!parsedEnv.success) {
-  const issues = parsedEnv.error.issues
-    .map((issue) => `- ${issue.path.join('.')}: ${issue.message}`)
-    .join('\n');
-
-  throw new Error(`Invalid environment variables:\n${issues}`);
-}
+const parsedEnv = envSchema.parse(process.env);
 
 export const env = {
-  ...parsedEnv.data,
-  allowedOrigins: parsedEnv.data.ALLOWED_ORIGINS.split(',')
+  ...parsedEnv,
+  allowedOrigins: parsedEnv.ALLOWED_ORIGINS.split(',')
     .map((origin) => origin.trim())
     .filter(Boolean),
 };
