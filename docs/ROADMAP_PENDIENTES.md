@@ -35,6 +35,9 @@
     - `apps/backend/scripts/reconnect-test-auction.js`
     - `apps/backend/scripts/smoke-test.js`
     - scripts npm: `qa:load-test`, `qa:reconnect-test`, `qa:smoke-test`, `qa:e2e-check`
+  - Frontend S7:
+    - Error boundary global agregado (`apps/frontend/app/error.tsx`, `apps/frontend/app/global-error.tsx`).
+    - Revisión de XSS: no se detectó `dangerouslySetInnerHTML` en el código actual.
 
 ---
 
@@ -427,9 +430,9 @@ npm install dompurify @types/dompurify -w apps/frontend
 - `apps/backend/scripts/load-test-auction.ts`
 
 **Tareas:**
-- [ ] Buscar y sanitizar cualquier `dangerouslySetInnerHTML` con DOMPurify
+- [x] Buscar y sanitizar cualquier `dangerouslySetInnerHTML` con DOMPurify (no aplica por ahora: no hay usos en frontend)
 - [ ] Verificar que accessToken NO estÃ© en localStorage/sessionStorage
-- [ ] Crear error boundary global para React
+- [x] Crear error boundary global para React
 - [ ] Agregar headers de seguridad en `next.config.js`:
   ```js
   headers: [
