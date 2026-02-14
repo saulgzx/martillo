@@ -14,10 +14,13 @@ import { errorHandler } from './middleware/error.middleware';
 import { createSocketServer } from './socket';
 import { logger } from './utils/logger';
 import { applySwagger } from './config/swagger';
+import { initSentry } from './config/sentry';
 
 const app = express();
 const server = createServer(app);
 const PORT = Number(process.env.PORT) || env.PORT || 4000;
+
+initSentry();
 
 // Middleware
 applySecurityMiddleware(app);

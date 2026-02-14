@@ -63,6 +63,8 @@
     - `prisma/seed.js` preparado para modo producción con SUPERADMIN por env vars.
   - Seguridad operativa:
     - script `qa:check-headers` agregado para validar headers HTTP de `/health`.
+  - Observabilidad:
+    - Sentry backend base integrado (init condicional + captura en error middleware).
   - Auditoría de dependencias ejecutada:
     - `npm audit --audit-level=moderate` realizado.
     - Pendientes documentados en `docs/SECURITY_REPORT_2026-02-14.md` (requieren upgrades mayores de Next/ESLint config).
@@ -510,7 +512,7 @@ npm install swagger-ui-express swagger-jsdoc -w apps/backend
   - auction: sala carga, puja funciona, precio se actualiza
 - [ ] Configurar Sentry:
   - Frontend: `@sentry/nextjs` con DSN desde env
-  - Backend: `@sentry/node` en error handler
+  - Backend: `@sentry/node` en error handler âœ… base implementada
   - `beforeSend`: filtrar PII (emails, RUT, tokens)
 - [x] Mejorar `GET /health`:
   ```json

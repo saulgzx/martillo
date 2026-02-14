@@ -3,6 +3,7 @@ import { ZodError } from 'zod';
 import { Prisma } from '@prisma/client';
 import { AppError } from '../utils/app-error';
 import { logger } from '../utils/logger';
+import { captureSentryException } from '../config/sentry';
 
 export function errorHandler(
   error: unknown,
@@ -46,5 +47,6 @@ export function errorHandler(
     method: req.method,
     error,
   });
+  captureSentryException(error);
   res.status(500).json({ success: false, message: 'Internal server error' });
 }
