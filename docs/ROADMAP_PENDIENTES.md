@@ -448,9 +448,9 @@ npm install dompurify @types/dompurify -w apps/frontend
 
 **Tareas:**
 - [x] Buscar y sanitizar cualquier `dangerouslySetInnerHTML` con DOMPurify (no aplica por ahora: no hay usos en frontend)
-- [ ] Verificar que accessToken NO estÃ© en localStorage/sessionStorage
+- [x] Verificar que accessToken NO estÃ© en localStorage/sessionStorage
 - [x] Crear error boundary global para React
-- [ ] Agregar headers de seguridad en `next.config.js`:
+- [x] Agregar headers de seguridad en `next.config.js`:
   ```js
   headers: [
     { key: 'X-Frame-Options', value: 'DENY' },
@@ -465,6 +465,7 @@ npm install dompurify @types/dompurify -w apps/frontend
   - DuraciÃ³n: 5 minutos
 - [x] Script de prueba de reconexiÃ³n (esqueleto):
   - Conectar â†’ 3 pujas â†’ disconnect â†’ 10s â†’ reconectar â†’ verificar estado
+- [x] Crear checklist automatizada base ejecutable con `npm run qa:e2e-check` (esqueleto)
 - [ ] Actualizar CONTEXT.md con resultados de auditorÃ­a
 
 ---
