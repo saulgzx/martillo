@@ -30,6 +30,11 @@
     - Fallback de store de refresh token en memoria si Redis no responde (login no se cae).
     - Frontend login muestra mensaje de error real devuelto por API.
     - CORS backend robustecido para dominios exactos y wildcard (`https://*.vercel.app`) con log de origen bloqueado.
+  - Esqueleto QA/Security (S7-S8) agregado en backend:
+    - `apps/backend/scripts/load-test-auction.js`
+    - `apps/backend/scripts/reconnect-test-auction.js`
+    - `apps/backend/scripts/smoke-test.js`
+    - scripts npm: `qa:load-test`, `qa:reconnect-test`, `qa:smoke-test`, `qa:e2e-check`
 
 ---
 
@@ -433,12 +438,12 @@ npm install dompurify @types/dompurify -w apps/frontend
     { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' }
   ]
   ```
-- [ ] Crear script de prueba de carga:
+- [x] Crear script de prueba de carga (esqueleto):
   - 50 postores simultÃ¡neos en una sala
   - Cada uno puja cada 3 segundos
   - Medir: latencia promedio, mensajes perdidos, race conditions
   - DuraciÃ³n: 5 minutos
-- [ ] Script de prueba de reconexiÃ³n:
+- [x] Script de prueba de reconexiÃ³n (esqueleto):
   - Conectar â†’ 3 pujas â†’ disconnect â†’ 10s â†’ reconectar â†’ verificar estado
 - [ ] Actualizar CONTEXT.md con resultados de auditorÃ­a
 
@@ -502,7 +507,7 @@ npm install swagger-ui-express swagger-jsdoc -w apps/backend
 - [ ] Verificar TODAS las env vars en Railway producciÃ³n
 - [ ] Verificar TODAS las env vars en Vercel producciÃ³n
 - [ ] Merge develop â†’ main, verificar pipeline verde
-- [ ] Crear script smoke-test.ts:
+- [x] Crear script smoke-test (esqueleto):
   - `GET /health` â†’ status ok, db connected, redis connected
   - `POST /api/auth/login` â†’ 401 con credenciales invÃ¡lidas
   - `GET /api/auctions/public` â†’ retorna array
