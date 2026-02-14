@@ -1,14 +1,108 @@
-require('dotenv').config();
-const { PrismaClient } = require('@prisma/client');
+﻿require('dotenv').config();
+const bcrypt = require('bcryptjs');
+const { PrismaClient, Role, AuctionStatus, LotStatus } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
 async function main() {
-  await prisma.seedMarker.upsert({
-    where: { key: 'initial_seed' },
-    update: { value: new Date().toISOString() },
-    create: { key: 'initial_seed', value: new Date().toISOString() },
+  const adminPasswordHash = await bcrypt.hash('Admin12345!', 12);
+  const agonzPasswordHash = await bcrypt.hash('Agonz123', 12);
+
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@martillo.com' },
+    update: {
+      fullName: 'Super Admin Martillo',
+      role: Role.SUPERADMIN,
+      status: 'ACTIVE',
+      passwordHash: adminPasswordHash,
+    },
+    create: {
+      email: 'admin@martillo.com',
+      passwordHash: adminPasswordHash,
+      role: Role.SUPERADMIN,
+      fullName: 'Super Admin Martillo',
+      rut: '11.111.111-1',
+      phone: '+56911111111',
+      status: 'ACTIVE',
+    },
   });
+
+  await prisma.user.upsert({
+    where: { email: 'agonz@martillo.com' },
+    update: {
+      fullName: 'Agonz',
+      role: Role.BIDDER,
+      status: 'ACTIVE',
+      passwordHash: agonzPasswordHash,
+    },
+    create: {
+      email: 'agonz@martillo.com',
+      passwordHash: agonzPasswordHash,
+      role: Role.BIDDER,
+      fullName: 'Agonz',
+      rut: '12.345.678-5',
+      phone: '+56912345678',
+      status: 'ACTIVE',
+    },
+  });
+
+  const now = new Date();
+  const startAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const endAt = new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000);
+
+  const existingAuction = await prisma.auction.findFirst({
+    where: { title: 'Remate de Demostracion', createdById: admin.id },
+    include: { lots: true },
+  });
+
+  if (!existingAuction) {
+    await prisma.auction.create({
+      data: {
+        title: 'Remate de Demostracion',
+        description: 'Remate base generado por seed',
+        startAt,
+        endAt,
+        status: AuctionStatus.DRAFT,
+        commissionPct: '10.00',
+        terms: 'Terminos de ejemplo para entorno de desarrollo.',
+        createdById: admin.id,
+        lots: {
+          create: [
+            {
+              title: 'Lote 1 - Reloj antiguo',
+              description: 'Pieza de coleccion.',
+              basePrice: '100000.00',
+              minIncrement: '5000.00',
+              currentPrice: '100000.00',
+              status: LotStatus.DRAFT,
+              orderIndex: 1,
+              category: 'Coleccionismo',
+            },
+            {
+              title: 'Lote 2 - Cuadro oleo',
+              description: 'Obra enmarcada.',
+              basePrice: '250000.00',
+              minIncrement: '10000.00',
+              currentPrice: '250000.00',
+              status: LotStatus.DRAFT,
+              orderIndex: 2,
+              category: 'Arte',
+            },
+            {
+              title: 'Lote 3 - Camara vintage',
+              description: 'Camara fotografica clasica.',
+              basePrice: '180000.00',
+              minIncrement: '8000.00',
+              currentPrice: '180000.00',
+              status: LotStatus.DRAFT,
+              orderIndex: 3,
+              category: 'Tecnologia',
+            },
+          ],
+        },
+      },
+    });
+  }
 }
 
 main()

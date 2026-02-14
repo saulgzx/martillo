@@ -7,10 +7,208 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model SeedMarker {
-  id        Int      @id @default(autoincrement())
-  key       String   @unique
-  value     String?
+enum Role {
+  SUPERADMIN
+  ADMIN
+  AUCTIONEER
+  CONSIGNOR
+  BIDDER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BANNED
+}
+
+enum AuctionStatus {
+  DRAFT
+  PUBLISHED
+  LIVE
+  FINISHED
+  CANCELLED
+}
+
+enum LotStatus {
+  DRAFT
+  PUBLISHED
+  ACTIVE
+  ADJUDICATED
+  UNSOLD
+}
+
+enum BidderStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  BANNED
+}
+
+enum BidSource {
+  ONLINE
+  PRESENCIAL
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  OVERDUE
+}
+
+model User {
+  id                     String         @id @default(cuid())
+  email                  String         @unique
+  passwordHash           String
+  role                   Role
+  fullName               String
+  rut                    String
+  phone                  String?
+  status                 UserStatus     @default(ACTIVE)
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  createdAuctions        Auction[]      @relation("AuctionCreator")
+  bidderProfiles         Bidder[]       @relation("BidderUser")
+  verifiedBidders        Bidder[]       @relation("BidderVerifier")
+  adjudicationsPerformed Adjudication[] @relation("AdjudicationActor")
+  auditLogs              AuditLog[]     @relation("AuditActor")
+}
+
+model Auction {
+  id            String        @id @default(cuid())
+  title         String
+  description   String?
+  startAt       DateTime
+  endAt         DateTime
+  status        AuctionStatus @default(DRAFT)
+  commissionPct Decimal       @db.Decimal(5, 2)
+  terms         String?
+  createdById   String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  createdBy     User          @relation("AuctionCreator", fields: [createdById], references: [id])
+  lots          Lot[]
+  bidders       Bidder[]
+
+  @@index([status])
+  @@index([startAt])
+}
+
+model Lot {
+  id             String        @id @default(cuid())
+  auctionId      String
+  title          String
+  description    String?
+  basePrice      Decimal       @db.Decimal(12, 2)
+  minIncrement   Decimal       @db.Decimal(12, 2)
+  currentPrice   Decimal       @db.Decimal(12, 2)
+  status         LotStatus     @default(DRAFT)
+  orderIndex     Int           @default(0)
+  category       String?
+  winnerBidderId String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  auction        Auction       @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  winnerBidder   Bidder?       @relation("LotWinner", fields: [winnerBidderId], references: [id])
+  media          LotMedia[]
+  bids           Bid[]
+  adjudication   Adjudication?
+
+  @@index([auctionId])
+  @@index([winnerBidderId])
+}
+
+model LotMedia {
+  id           String   @id @default(cuid())
+  lotId        String
+  type         String
+  url          String
+  cloudinaryId String?
+  orderIndex   Int      @default(0)
+  createdAt    DateTime @default(now())
+  lot          Lot      @relation(fields: [lotId], references: [id], onDelete: Cascade)
+
+  @@index([lotId, orderIndex])
+}
+
+model Bidder {
+  id           String       @id @default(cuid())
+  userId       String
+  auctionId    String
+  paddleNumber Int
+  status       BidderStatus @default(PENDING)
+  verifiedAt   DateTime?
+  verifiedById String?
+  createdAt    DateTime     @default(now())
+  user         User         @relation("BidderUser", fields: [userId], references: [id], onDelete: Cascade)
+  auction      Auction      @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  verifiedBy   User?        @relation("BidderVerifier", fields: [verifiedById], references: [id])
+  bids         Bid[]
+  wonLots      Lot[]        @relation("LotWinner")
+
+  @@unique([auctionId, paddleNumber])
+  @@unique([userId, auctionId])
+  @@index([auctionId, status])
+}
+
+model Bid {
+  id                String        @id @default(cuid())
+  lotId             String
+  bidderId          String
+  amount            Decimal       @db.Decimal(12, 2)
+  source            BidSource
+  ipAddr            String?
+  createdAt         DateTime      @default(now())
+  lot               Lot           @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  bidder            Bidder        @relation(fields: [bidderId], references: [id], onDelete: Cascade)
+  wonInAdjudication Adjudication? @relation("WinningBid")
+
+  @@index([lotId, createdAt])
+  @@index([bidderId, createdAt])
+}
+
+model Adjudication {
+  id              String   @id @default(cuid())
+  lotId           String   @unique
+  winningBidId    String   @unique
+  adjudicatedAt   DateTime @default(now())
+  adjudicatedById String
+  finalPrice      Decimal  @db.Decimal(12, 2)
+  lot             Lot      @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  winningBid      Bid      @relation("WinningBid", fields: [winningBidId], references: [id])
+  adjudicatedBy   User     @relation("AdjudicationActor", fields: [adjudicatedById], references: [id])
+  payment         Payment?
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  adjudicationId String        @unique
+  amount         Decimal       @db.Decimal(12, 2)
+  commission     Decimal       @db.Decimal(12, 2)
+  tax            Decimal       @db.Decimal(12, 2)
+  total          Decimal       @db.Decimal(12, 2)
+  status         PaymentStatus @default(PENDING)
+  providerRef    String?
+  providerData   Json?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  adjudication   Adjudication  @relation(fields: [adjudicationId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  entity    String
+  entityId  String
+  action    String
+  actorId   String?
+  oldValue  Json?
+  newValue  Json?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  actor     User?    @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([createdAt])
 }

@@ -6,7 +6,19 @@ const config: Config = {
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './lib/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['Geist Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+      },
       colors: {
+        brand: {
+          navy: '#1A3C5E',
+          gray: '#64748B',
+          blue: '#3B82C4',
+          blueLight: '#DBEAFE',
+          text: '#0F172A',
+          offWhite: '#F8FAFC',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',

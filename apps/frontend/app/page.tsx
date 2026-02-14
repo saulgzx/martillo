@@ -1,22 +1,31 @@
+﻿import { AuctionCard } from '@/components/auction/AuctionCard';
+import { mockAuctions } from '@/lib/mock-auctions';
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="text-center">
-        <h1 className="text-6xl font-bold tracking-tight text-foreground">Martillo</h1>
-        <p className="mt-4 text-xl text-muted-foreground">Plataforma de Subastas Híbridas</p>
-        <div className="mt-8 flex gap-4 justify-center">
-          <div className="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
-            <h2 className="text-lg font-semibold">Subastas en Vivo</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Participa en subastas en tiempo real
-            </p>
-          </div>
-          <div className="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
-            <h2 className="text-lg font-semibold">Subastas Online</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Puja desde cualquier lugar</p>
-          </div>
+    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-10 px-6 py-12">
+      <section className="rounded-2xl bg-brand-navy px-8 py-10 text-brand-offWhite">
+        <h1 className="text-4xl font-bold tracking-tight">Martillo</h1>
+        <p className="mt-3 max-w-2xl text-base text-brand-blueLight">
+          Plataforma de subastas hibridas para operaciones en vivo y online con foco en seguridad,
+          trazabilidad y velocidad.
+        </p>
+        <a
+          href="#remates"
+          className="mt-6 inline-flex rounded-md bg-brand-blue px-4 py-2 text-sm font-semibold text-white"
+        >
+          Ver remates activos
+        </a>
+      </section>
+
+      <section id="remates" className="space-y-4">
+        <h2 className="text-2xl font-semibold text-foreground">Remates activos y proximos</h2>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {mockAuctions.map((auction) => (
+            <AuctionCard key={auction.id} auction={auction} />
+          ))}
         </div>
-      </div>
+      </section>
     </main>
   );
 }
