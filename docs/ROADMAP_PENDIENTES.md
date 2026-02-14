@@ -55,6 +55,7 @@
       - `POST /api/auth/register` -> 3/h
       - `POST /api/lots/:lotId/media` -> 20/h por usuario
     - `console.log` en runtime backend (`src/`) reemplazado por logger.
+    - `error.middleware.ts` reforzado con logging seguro centralizado.
 
 ---
 
@@ -420,7 +421,7 @@ npm install winston -w apps/backend
 - [ ] Revisar TODOS los endpoints: Â¿tienen authenticate/authorize correcto?
 - [ ] Verificar ownership en endpoints (postor no puede ver datos de otro)
 - [ ] Buscar `$queryRaw` o `$executeRaw` sin parÃ¡metros seguros
-- [ ] Error handler: no exponer stack traces en producciÃ³n
+- [x] Error handler: no exponer stack traces en producciÃ³n
 - [ ] Mensajes de auth genÃ©ricos ("Credenciales invÃ¡lidas", no "Email no existe")
 - [ ] Crear `logger.ts` con winston:
   - Production: solo warn/error, sin datos de usuario
