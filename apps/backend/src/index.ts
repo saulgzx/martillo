@@ -16,7 +16,7 @@ import { logger } from './utils/logger';
 
 const app = express();
 const server = createServer(app);
-const PORT = env.PORT;
+const PORT = Number(process.env.PORT) || env.PORT || 4000;
 
 // Middleware
 applySecurityMiddleware(app);
@@ -37,7 +37,7 @@ app.use(errorHandler);
 
 createSocketServer(server);
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   logger.info(`[Martillo API] Server running on http://localhost:${PORT}`);
 });
 
