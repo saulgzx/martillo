@@ -5,7 +5,7 @@ import { env } from '../config/env';
 
 type TemplateData = Record<string, string | number>;
 
-const resend = new Resend(env.RESEND_API_KEY);
+const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 const DEFAULT_FROM = 'Martillo <noreply@martillo.app>';
 
 function templatePath(templateName: string): string | null {
@@ -32,7 +32,7 @@ function renderTemplate(templateName: string, data: TemplateData): string {
 }
 
 async function sendEmail(params: { to: string; subject: string; html: string; from?: string }) {
-  if (!env.RESEND_API_KEY) return;
+  if (!resend) return;
   await resend.emails.send({
     from: params.from ?? DEFAULT_FROM,
     to: params.to,
