@@ -60,6 +60,7 @@
     - Swagger base integrado (`/api/docs`) solo en no-producción.
     - Documentación OpenAPI agregada para login, auctions public, bidder register, payment webhook y eventos socket.
     - Script de verificación de backup/DB agregado (`apps/backend/scripts/verify-backup.js`).
+    - `prisma/seed.js` preparado para modo producción con SUPERADMIN por env vars.
   - Auditoría de dependencias ejecutada:
     - `npm audit --audit-level=moderate` realizado.
     - Pendientes documentados en `docs/SECURITY_REPORT_2026-02-14.md` (requieren upgrades mayores de Next/ESLint config).
@@ -544,7 +545,7 @@ npm install swagger-ui-express swagger-jsdoc -w apps/backend
   - ConexiÃ³n WebSocket â†’ conecta y desconecta limpio
 - [ ] Configurar dominio personalizado (Vercel + Railway)
 - [ ] Actualizar ALLOWED_ORIGINS con dominio de producciÃ³n
-- [ ] Seed de producciÃ³n: SUPERADMIN desde env vars (no hardcoded)
+- [x] Seed de producciÃ³n: SUPERADMIN desde env vars (no hardcoded)
 - [ ] Actualizar CONTEXT.md con estado final: PRODUCCIÃ“N v1.0
 - [ ] Configurar UptimeRobot para monitorear `/health` cada 5 minutos
 

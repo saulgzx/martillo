@@ -4,7 +4,54 @@ const { PrismaClient, Role, AuctionStatus, LotStatus } = require('@prisma/client
 
 const prisma = new PrismaClient();
 
+function isProductionSeedMode() {
+  const envName = (process.env.NODE_ENV || '').toLowerCase();
+  const railwayEnv = (process.env.RAILWAY_ENVIRONMENT_NAME || '').toLowerCase();
+  return envName === 'production' || railwayEnv === 'production';
+}
+
+function requiredProductionSeedVars() {
+  const email = process.env.SEED_SUPERADMIN_EMAIL?.trim();
+  const password = process.env.SEED_SUPERADMIN_PASSWORD?.trim();
+  const fullName = process.env.SEED_SUPERADMIN_FULL_NAME?.trim() || 'Super Admin Martillo';
+  const rut = process.env.SEED_SUPERADMIN_RUT?.trim() || '11.111.111-1';
+  const phone = process.env.SEED_SUPERADMIN_PHONE?.trim() || '+56911111111';
+
+  return { email, password, fullName, rut, phone };
+}
+
 async function main() {
+  if (isProductionSeedMode()) {
+    const prodSeed = requiredProductionSeedVars();
+    if (!prodSeed.email || !prodSeed.password) {
+      throw new Error(
+        'Missing SEED_SUPERADMIN_EMAIL/SEED_SUPERADMIN_PASSWORD for production seed mode',
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(prodSeed.password, 12);
+    await prisma.user.upsert({
+      where: { email: prodSeed.email },
+      update: {
+        fullName: prodSeed.fullName,
+        role: Role.SUPERADMIN,
+        status: 'ACTIVE',
+        passwordHash,
+      },
+      create: {
+        email: prodSeed.email,
+        passwordHash,
+        role: Role.SUPERADMIN,
+        fullName: prodSeed.fullName,
+        rut: prodSeed.rut,
+        phone: prodSeed.phone,
+        status: 'ACTIVE',
+      },
+    });
+
+    return;
+  }
+
   const adminPasswordHash = await bcrypt.hash('Admin12345!', 12);
   const agonzPasswordHash = await bcrypt.hash('Agonz123', 12);
   const qaAdminPasswordHash = await bcrypt.hash('AdminMartillo123!', 12);
