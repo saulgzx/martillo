@@ -38,6 +38,9 @@
   - Frontend S7:
     - Error boundary global agregado (`apps/frontend/app/error.tsx`, `apps/frontend/app/global-error.tsx`).
     - Revisión de XSS: no se detectó `dangerouslySetInnerHTML` en el código actual.
+  - Frontend S8 (esqueleto E2E):
+    - Playwright base configurado (`apps/frontend/playwright.config.ts`).
+    - Specs base creadas: `auth.spec.ts`, `catalog.spec.ts`, `bidder-flow.spec.ts`, `auction.spec.ts`.
 
 ---
 
@@ -471,7 +474,7 @@ npm install swagger-ui-express swagger-jsdoc -w apps/backend
 - `apps/frontend/e2e/auction.spec.ts`
 
 **Tareas:**
-- [ ] Configurar Playwright en frontend
+- [x] Configurar Playwright en frontend (esqueleto base)
 - [ ] Tests E2E:
   - auth: registro, login correcto, login incorrecto, refresh automÃ¡tico
   - catalog: carga sin login, lotes visibles, redirect si no registrado
