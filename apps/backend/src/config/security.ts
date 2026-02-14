@@ -1,4 +1,4 @@
-import type { Express } from 'express';
+import type { Express, Request } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -12,11 +12,26 @@ const generalRateLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-const authRateLimiter = rateLimit({
+export const authLoginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,
+});
+
+export const authRegisterRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+export const lotMediaRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: Request) => req.user?.id ?? req.ip ?? 'anonymous',
 });
 
 function normalizeOrigin(origin: string): string {
@@ -84,5 +99,4 @@ export function applySecurityMiddleware(app: Express): void {
   );
 
   app.use(generalRateLimiter);
-  app.use('/api/auth', authRateLimiter);
 }

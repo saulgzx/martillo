@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { asyncHandler } from '../utils/async-handler';
 import { authorize, authenticate } from '../middleware/auth.middleware';
 import { upload } from '../middleware/upload.middleware';
+import { lotMediaRateLimiter } from '../config/security';
 import {
   addMedia,
   createLot,
@@ -93,6 +94,7 @@ router.post(
   '/lots/:lotId/media',
   authenticate,
   authorize('ADMIN'),
+  lotMediaRateLimiter,
   upload.array('files', 10),
   asyncHandler(async (req, res) => {
     const files = (req.files as Express.Multer.File[] | undefined) ?? [];

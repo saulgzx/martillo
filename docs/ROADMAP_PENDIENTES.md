@@ -49,6 +49,11 @@
     - redirección post-login/post-register según rol
     - cookie `martillo_role` para middleware
     - bloqueo de `/admin` para roles no administrativos
+  - Seguridad backend:
+    - rate limits específicos aplicados por ruta:
+      - `POST /api/auth/login` -> 5/15m
+      - `POST /api/auth/register` -> 3/h
+      - `POST /api/lots/:lotId/media` -> 20/h por usuario
 
 ---
 
@@ -420,10 +425,10 @@ npm install winston -w apps/backend
   - Production: solo warn/error, sin datos de usuario
   - Development: logs completos
 - [ ] Reemplazar todos los `console.log` por el logger
-- [ ] Verificar rate limits especÃ­ficos:
+- [x] Verificar rate limits especÃ­ficos:
   - `POST /api/auth/login` â†’ 5/15min por IP âœ… ya existe
-  - `POST /api/auth/register` â†’ 3/hora por IP âŒ agregar
-  - `POST /api/lots/:id/media` â†’ 20/hora por usuario âŒ agregar
+  - `POST /api/auth/register` â†’ 3/hora por IP âœ… implementado
+  - `POST /api/lots/:id/media` â†’ 20/hora por usuario âœ… implementado
 - [ ] Verificar headers HTTP: helmet con HSTS, CSP, X-Frame-Options
 - [ ] Ejecutar `npm audit --audit-level=moderate` y corregir
 - [ ] Generar reporte de seguridad
