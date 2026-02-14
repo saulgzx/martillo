@@ -1,72 +1,45 @@
-# Martillo - Plataforma de Subastas Híbridas
+# Martillo - Contexto Actualizado
 
-## Descripción
-Martillo es una plataforma de subastas híbridas que permite realizar subastas tanto presenciales como online en tiempo real. Los usuarios pueden participar como postores, subastadores o administradores de la plataforma.
+## Resumen
+Martillo es una plataforma de subastas híbridas (online + presencial) con monorepo (`apps/frontend`, `apps/backend`, `packages/shared`) y despliegue en Vercel + Railway.
 
-## Stack Tecnológico
+Fecha de actualización: 2026-02-14
 
-### Frontend
-- **Framework:** Next.js 14 (App Router)
-- **Lenguaje:** TypeScript (strict mode)
-- **Estilos:** TailwindCSS
-- **Componentes UI:** shadcn/ui (tema slate)
-- **Linting:** ESLint + Prettier
+## Stack
+- Frontend: Next.js 14, TypeScript, Tailwind, Zustand
+- Backend: Express, TypeScript, Prisma, Redis, Socket.io
+- DB/Cache: PostgreSQL + Redis (Railway)
+- Infra: Vercel (frontend), Railway (backend)
 
-### Backend
-- **Runtime:** Node.js
-- **Framework:** Express
-- **Lenguaje:** TypeScript
-- **Dev Server:** ts-node-dev
-- **Linting:** ESLint + Prettier
+## Estado actual
+- Backend:
+  - Auth JWT (login/register/refresh/logout/me) operativo
+  - CRUD base de subastas/lotes operativo
+  - Socket de subasta implementado en base
+  - `/health` mejorado con `status`, `db`, `redis`, `uptime`, `version`
+  - Seguridad base: helmet, CORS con whitelist/wildcard, rate limiting por ruta
+  - Swagger base integrado en `/api/docs` solo en no-producción
+- Frontend:
+  - Flujos auth implementados
+  - Rutas públicas/admin/live implementadas en base
+  - Error boundaries globales agregados
+  - Redirección por rol y bloqueo de rutas admin para no-admin
+- QA/Operación:
+  - Scripts base: smoke, load-test, reconnect-test, e2e-check, verify-backup
+  - Playwright base configurado (specs esqueleto)
 
-### Shared
-- Paquete de tipos TypeScript compartidos entre frontend y backend
-- Publicado como `@martillo/shared` dentro del monorepo
+## Seguridad y auditoría
+- Ejecutado: `npm audit --audit-level=moderate`
+- Hallazgos vigentes: dependencias con upgrade mayor requerido (Next/ESLint config)
+- Detalle y plan: `docs/SECURITY_REPORT_2026-02-14.md`
 
-## Estructura de Carpetas
+## Entorno producción (actual)
+- Proyecto Railway: `adaptable-inspiration`
+- Servicio backend: `just-courtesy`
+- Dominio backend activo: `https://martillo.up.railway.app`
 
-```
-martillo/
-├── apps/
-│   ├── frontend/          → Next.js 14 App
-│   │   ├── app/           → App Router pages & layouts
-│   │   ├── components/    → Componentes React (ui/ para shadcn)
-│   │   ├── lib/           → Utilidades y helpers
-│   │   ├── hooks/         → Custom React hooks
-│   │   ├── store/         → Estado global
-│   │   └── types/         → Tipos locales del frontend
-│   └── backend/           → API Express
-│       └── src/
-│           ├── routes/       → Definición de rutas
-│           ├── controllers/  → Lógica de controladores
-│           ├── middleware/   → Middleware Express
-│           ├── models/       → Modelos de datos
-│           ├── services/     → Lógica de negocio
-│           └── utils/        → Utilidades
-├── packages/
-│   └── shared/            → Tipos compartidos
-├── docs/                  → Documentación
-├── CONTEXT.md             → Este archivo
-└── README.md              → Instrucciones de setup
-```
-
-## Estado Actual
-- [x] Estructura del monorepo creada
-- [x] Configuración de workspaces (npm)
-- [x] Frontend base con Next.js 14 + TailwindCSS + shadcn/ui
-- [x] Backend base con Express + TypeScript
-- [x] Paquete shared con tipos base
-- [ ] Base de datos (pendiente de seleccionar)
-- [ ] Autenticación
-- [ ] WebSockets para subastas en vivo
-- [ ] Sistema de pujas
-
-## Próximos Pasos
-1. **Base de datos** - Seleccionar e integrar base de datos (PostgreSQL + Prisma recomendado)
-2. **Autenticación** - Implementar sistema de auth (JWT / NextAuth)
-3. **Modelos de datos** - Definir esquema completo de la base de datos
-4. **API REST** - Crear endpoints CRUD para subastas, usuarios y pujas
-5. **WebSockets** - Integrar Socket.io para subastas en tiempo real
-6. **UI de subastas** - Construir interfaz de catálogo y sala de subastas
-7. **Sistema de pujas** - Lógica de pujas con validación en tiempo real
-8. **Panel de administración** - Dashboard para gestión de subastas
+## Pendientes prioritarios
+1. Completar pruebas E2E reales (hoy hay esqueleto base).
+2. Configurar Sentry frontend/backend.
+3. Resolver separación final de UX por rol (admin vs cliente) y pulir vistas.
+4. Cerrar pendientes de seguridad con plan de upgrade mayor en branch dedicado.

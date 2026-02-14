@@ -475,7 +475,7 @@ npm install dompurify @types/dompurify -w apps/frontend
 - [x] Script de prueba de reconexiÃ³n (esqueleto):
   - Conectar â†’ 3 pujas â†’ disconnect â†’ 10s â†’ reconectar â†’ verificar estado
 - [x] Crear checklist automatizada base ejecutable con `npm run qa:e2e-check` (esqueleto)
-- [ ] Actualizar CONTEXT.md con resultados de auditorÃ­a
+- [x] Actualizar CONTEXT.md con resultados de auditorÃ­a
 
 ---
 
