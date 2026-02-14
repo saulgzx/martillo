@@ -29,6 +29,7 @@
     - Backend auth controllers con manejo explicito de errores (sin fallas silenciosas).
     - Fallback de store de refresh token en memoria si Redis no responde (login no se cae).
     - Frontend login muestra mensaje de error real devuelto por API.
+    - CORS backend robustecido para dominios exactos y wildcard (`https://*.vercel.app`) con log de origen bloqueado.
 
 ---
 

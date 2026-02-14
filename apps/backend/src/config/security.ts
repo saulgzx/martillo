@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { env } from './env';
+import { logger } from '../utils/logger';
 
 const generalRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -17,6 +18,28 @@ const authRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+function normalizeOrigin(origin: string): string {
+  return origin.trim().replace(/\/+$/, '');
+}
+
+function matchesAllowedOrigin(requestOrigin: string, allowedOrigin: string): boolean {
+  const normalizedRequest = normalizeOrigin(requestOrigin);
+  const normalizedAllowed = normalizeOrigin(allowedOrigin);
+
+  if (normalizedAllowed === '*') return true;
+  if (normalizedRequest === normalizedAllowed) return true;
+
+  // Allow wildcard subdomains such as https://*.vercel.app
+  const wildcardMatch = normalizedAllowed.match(/^(https?:\/\/)\*\.(.+)$/i);
+  if (!wildcardMatch) return false;
+
+  const [, protocol, hostPattern] = wildcardMatch;
+  if (!normalizedRequest.startsWith(protocol)) return false;
+
+  const requestHost = normalizedRequest.slice(protocol.length);
+  return requestHost === hostPattern || requestHost.endsWith(`.${hostPattern}`);
+}
 
 export function applySecurityMiddleware(app: Express): void {
   app.set('trust proxy', 1);
@@ -38,7 +61,24 @@ export function applySecurityMiddleware(app: Express): void {
 
   app.use(
     cors({
-      origin: env.allowedOrigins,
+      origin: (origin, callback) => {
+        if (!origin) {
+          callback(null, true);
+          return;
+        }
+
+        const allowed = env.allowedOrigins.some((allowedOrigin) =>
+          matchesAllowedOrigin(origin, allowedOrigin),
+        );
+
+        if (allowed) {
+          callback(null, true);
+          return;
+        }
+
+        logger.warn('Blocked CORS origin', { origin, allowedOrigins: env.allowedOrigins });
+        callback(new Error('Not allowed by CORS'));
+      },
       credentials: true,
     }),
   );
