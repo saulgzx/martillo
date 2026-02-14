@@ -31,6 +31,16 @@ const auctionCreateSchema = z.object({
 
 const auctionUpdateSchema = auctionCreateSchema.partial();
 
+/**
+ * @openapi
+ * /api/auctions/public:
+ *   get:
+ *     summary: Obtener remates publicos
+ *     tags: [Auctions]
+ *     responses:
+ *       200:
+ *         description: Lista de remates publicados/en vivo.
+ */
 router.get(
   '/public',
   asyncHandler(async (_req, res) => {

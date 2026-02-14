@@ -56,6 +56,9 @@
       - `POST /api/lots/:lotId/media` -> 20/h por usuario
     - `console.log` en runtime backend (`src/`) reemplazado por logger.
     - `error.middleware.ts` reforzado con logging seguro centralizado.
+  - Backend S8:
+    - Swagger base integrado (`/api/docs`) solo en no-producción.
+    - Documentación OpenAPI agregada para login, auctions public, bidder register, payment webhook y eventos socket.
 
 ---
 
@@ -511,7 +514,7 @@ npm install swagger-ui-express swagger-jsdoc -w apps/backend
     "timestamp": "2026-..."
   }
   ```
-- [ ] DocumentaciÃ³n API con Swagger (solo dev/staging, no production):
+- [x] DocumentaciÃ³n API con Swagger (solo dev/staging, no production):
   - `POST /api/auth/login`
   - `POST /api/auctions/:id/register`
   - `POST /api/payments/flow/webhook`

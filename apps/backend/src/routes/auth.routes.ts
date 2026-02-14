@@ -5,6 +5,28 @@ import { authLoginRateLimiter, authRegisterRateLimiter } from '../config/securit
 
 export const authRouter = Router();
 
+/**
+ * @openapi
+ * /api/auth/login:
+ *   post:
+ *     summary: Iniciar sesion
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email: { type: string, format: email }
+ *               password: { type: string }
+ *     responses:
+ *       200:
+ *         description: Login exitoso con access token y cookie refresh.
+ *       401:
+ *         description: Credenciales invalidas.
+ */
 authRouter.post('/register', authRegisterRateLimiter, register);
 authRouter.post('/login', authLoginRateLimiter, login);
 authRouter.post('/refresh', refresh);

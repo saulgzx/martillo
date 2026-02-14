@@ -13,6 +13,7 @@ import { paymentRouter } from './routes/payment.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { createSocketServer } from './socket';
 import { logger } from './utils/logger';
+import { applySwagger } from './config/swagger';
 
 const app = express();
 const server = createServer(app);
@@ -34,6 +35,10 @@ app.use('/api/auctions', auctionRouter);
 app.use('/api', lotRouter);
 app.use('/api', bidderRouter);
 app.use('/api', paymentRouter);
+
+if (env.NODE_ENV !== 'production') {
+  applySwagger(app);
+}
 
 app.use(errorHandler);
 

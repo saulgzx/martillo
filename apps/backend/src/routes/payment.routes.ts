@@ -11,6 +11,19 @@ import {
 
 export const paymentRouter = Router();
 
+/**
+ * @openapi
+ * /api/payments/flow/webhook:
+ *   post:
+ *     summary: Webhook de confirmacion de pago Flow
+ *     tags: [Payments]
+ *     description: Endpoint sin JWT que valida firma `x-flow-signature`.
+ *     responses:
+ *       200:
+ *         description: Webhook procesado.
+ *       400:
+ *         description: Firma invalida o payload incorrecto.
+ */
 paymentRouter.post(
   '/payments/flow/webhook',
   asyncHandler(async (req, res) => {

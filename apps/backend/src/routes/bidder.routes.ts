@@ -42,6 +42,26 @@ const documentQuerySchema = z.object({
   auctionId: z.string().min(1),
 });
 
+/**
+ * @openapi
+ * /api/auctions/{id}/register:
+ *   post:
+ *     summary: Aplicar como postor a un remate
+ *     tags: [Bidders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       201:
+ *         description: Solicitud registrada en estado PENDING.
+ *       401:
+ *         description: No autenticado.
+ */
 bidderRouter.post(
   '/auctions/:id/register',
   authenticate,
