@@ -6,6 +6,7 @@ import { RedisTokenStore } from '../lib/redis-token-store';
 import { AuthService } from '../services/auth.service';
 import { env } from '../config/env';
 import { decryptPII, encryptPII, maskRut } from '../utils/encryption';
+import { sendWelcome } from '../services/email.service';
 
 const authService = new AuthService(new RedisTokenStore());
 
@@ -106,6 +107,11 @@ export async function register(req: Request, res: Response): Promise<void> {
 
   const tokens = await authService.generateTokens(user.id, user.role);
   res.cookie('refreshToken', tokens.refreshToken, getRefreshCookieOptions());
+
+  await sendWelcome({
+    to: user.email,
+    name: user.fullName,
+  });
 
   res.status(201).json({
     success: true,

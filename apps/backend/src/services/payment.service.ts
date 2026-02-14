@@ -3,6 +3,7 @@ import { PaymentStatus, Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../utils/app-error';
 import { createPayment, verifyFlowWebhookSignature } from '../integrations/flow.integration';
+import { sendAdjudicationWon, sendPaymentConfirmed } from './email.service';
 
 type PaymentOrderResult = {
   paymentId: string;
@@ -78,6 +79,15 @@ export async function createPaymentOrder(adjudicationId: string): Promise<Paymen
     },
   });
 
+  await sendAdjudicationWon({
+    to: adjudication.winningBid.bidder.user.email,
+    name: adjudication.winningBid.bidder.user.fullName,
+    lotName: adjudication.lot.title,
+    amount,
+    paymentUrl: flow.url,
+    deadline: flow.expiresAt.toISOString(),
+  });
+
   return {
     paymentId: payment.id,
     flowUrl: flow.url,
@@ -112,10 +122,43 @@ export async function handleFlowWebhook(payload: unknown, signature: string) {
   }
 
   const status = parsed.status === 'PAID' ? PaymentStatus.PAID : PaymentStatus.FAILED;
-  return prisma.payment.update({
+  const updated = await prisma.payment.update({
     where: { id: payment.id },
     data: { status, providerData: payload as Prisma.InputJsonValue },
   });
+
+  if (updated.status === PaymentStatus.PAID) {
+    const full = await prisma.payment.findUnique({
+      where: { id: updated.id },
+      include: {
+        adjudication: {
+          include: {
+            lot: true,
+            winningBid: {
+              include: {
+                bidder: {
+                  include: {
+                    user: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (full) {
+      await sendPaymentConfirmed({
+        to: full.adjudication.winningBid.bidder.user.email,
+        name: full.adjudication.winningBid.bidder.user.fullName,
+        lotName: full.adjudication.lot.title,
+        total: Number(full.total),
+      });
+    }
+  }
+
+  return updated;
 }
 
 export async function retryPayment(paymentId: string, userId: string): Promise<PaymentOrderResult> {

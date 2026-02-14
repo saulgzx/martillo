@@ -20,6 +20,7 @@
     - `rutMasked` en respuestas de auth y listados de postores
   - Estado fase: Fase 2 = PARCIAL AVANZADA
   - Fase 3.1 backend pagos implementada en base funcional (rutas + service + recibo PDF + webhook firmado base).
+  - Fase 3.2 email base implementada (Resend + templates + integraciones en register/approve/reject/pago).
   - Fase 3.3 frontend pagos implementada en base funcional (`/payments/[id]`, `/payments/return`, `/my-adjudications`, admin placeholder).
   - Estado fase: Fase 3 = PARCIAL AVANZADA
 

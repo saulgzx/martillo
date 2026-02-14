@@ -2,6 +2,7 @@ import type { Namespace, Socket } from 'socket.io';
 import { AuctionStatus, BidSource, BidderStatus, LotStatus, Prisma, Role } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { AuctionStateService } from '../services/auction-state.service';
+import { createPaymentOrder } from '../services/payment.service';
 
 type AuthSocket = Socket & {
   data: {
@@ -391,6 +392,8 @@ export function registerAuctionEvents(namespace: Namespace) {
           return { adjudication, payment };
         });
 
+        const paymentOrder = await createPaymentOrder(result.adjudication.id);
+
         await stateService.setActiveLot(auctionId, '');
 
         namespace.to(auctionId).emit('lot:adjudicated', {
@@ -398,6 +401,8 @@ export function registerAuctionEvents(namespace: Namespace) {
           winner: { paddleNumber: winningBid.bidder.paddleNumber },
           finalPrice: Number(winningBid.amount),
           paymentId: result.payment.id,
+          paymentUrl: paymentOrder.flowUrl,
+          expiresAt: paymentOrder.expiresAt.toISOString(),
           timestamp: new Date().toISOString(),
         });
 
@@ -411,6 +416,8 @@ export function registerAuctionEvents(namespace: Namespace) {
               finalPrice: Number(winningBid.amount),
               paymentId: result.payment.id,
               total: Number(result.payment.total),
+              paymentUrl: paymentOrder.flowUrl,
+              expiresAt: paymentOrder.expiresAt.toISOString(),
             });
           }
         }

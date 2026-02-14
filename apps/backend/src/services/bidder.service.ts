@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma';
 import { AppError } from '../utils/app-error';
 import { addToBlacklist, isBlacklisted } from './blacklist.service';
 import { decryptPII, maskRut } from '../utils/encryption';
+import { sendBidderApproved, sendBidderRejected } from './email.service';
 
 type PaginationInput = {
   page: number;
@@ -56,7 +57,13 @@ export async function applyToBid(userId: string, auctionId: string) {
 }
 
 export async function approveBidder(bidderId: string, adminId: string) {
-  const bidder = await prisma.bidder.findUnique({ where: { id: bidderId } });
+  const bidder = await prisma.bidder.findUnique({
+    where: { id: bidderId },
+    include: {
+      user: true,
+      auction: true,
+    },
+  });
   if (!bidder) {
     throw new AppError(404, 'Bidder not found');
   }
@@ -79,11 +86,24 @@ export async function approveBidder(bidderId: string, adminId: string) {
     },
   });
 
+  await sendBidderApproved({
+    to: bidder.user.email,
+    name: bidder.user.fullName,
+    auctionName: bidder.auction.title,
+    paddleNumber: bidder.paddleNumber,
+  });
+
   return updated;
 }
 
 export async function rejectBidder(bidderId: string, adminId: string, reason: string) {
-  const bidder = await prisma.bidder.findUnique({ where: { id: bidderId } });
+  const bidder = await prisma.bidder.findUnique({
+    where: { id: bidderId },
+    include: {
+      user: true,
+      auction: true,
+    },
+  });
   if (!bidder) {
     throw new AppError(404, 'Bidder not found');
   }
@@ -105,6 +125,13 @@ export async function rejectBidder(bidderId: string, adminId: string, reason: st
       actorId: adminId,
       newValue: { reason } as unknown as Prisma.InputJsonValue,
     },
+  });
+
+  await sendBidderRejected({
+    to: bidder.user.email,
+    name: bidder.user.fullName,
+    auctionName: bidder.auction.title,
+    reason,
   });
 
   return updated;
