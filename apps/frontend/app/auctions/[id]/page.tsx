@@ -1,8 +1,7 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { LotCard } from '@/components/lot/LotCard';
-import { Button } from '@/components/ui/button';
 import { mockAuctions } from '@/lib/mock-auctions';
+import { BidderStatusGate } from '@/components/bidder/BidderStatusGate';
 
 export function generateStaticParams() {
   return mockAuctions.map((auction) => ({ id: auction.id }));
@@ -25,9 +24,7 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
           <summary className="cursor-pointer font-medium">Condiciones del remate</summary>
           <p className="mt-2 text-muted-foreground">{auction.terms}</p>
         </details>
-        <Link href="/register">
-          <Button>Participar</Button>
-        </Link>
+        <BidderStatusGate auctionId={auction.id} />
       </header>
 
       <section className="grid grid-cols-1 gap-4 md:grid-cols-2">

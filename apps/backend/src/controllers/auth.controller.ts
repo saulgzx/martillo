@@ -5,6 +5,7 @@ import { prisma } from '../lib/prisma';
 import { RedisTokenStore } from '../lib/redis-token-store';
 import { AuthService } from '../services/auth.service';
 import { env } from '../config/env';
+import { decryptPII, encryptPII, maskRut } from '../utils/encryption';
 
 const authService = new AuthService(new RedisTokenStore());
 
@@ -48,16 +49,26 @@ function toPublicUser(user: {
   email: string;
   role: Role;
   fullName: string;
+  rut: string;
   phone: string | null;
   status: UserStatus;
   createdAt: Date;
   updatedAt: Date;
 }) {
+  let rutMasked = '';
+  try {
+    rutMasked = maskRut(decryptPII(user.rut));
+  } catch {
+    // Backward compatibility for non-encrypted legacy values.
+    rutMasked = maskRut(user.rut);
+  }
+
   return {
     id: user.id,
     email: user.email,
     role: user.role,
     fullName: user.fullName,
+    rutMasked,
     phone: user.phone,
     status: user.status,
     createdAt: user.createdAt,
@@ -87,7 +98,7 @@ export async function register(req: Request, res: Response): Promise<void> {
       passwordHash,
       role: Role.BIDDER,
       fullName,
-      rut,
+      rut: encryptPII(rut),
       phone,
       status: UserStatus.ACTIVE,
     },

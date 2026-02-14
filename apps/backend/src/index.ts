@@ -8,6 +8,7 @@ import { applySecurityMiddleware } from './config/security';
 import { authRouter } from './routes/auth.routes';
 import { auctionRouter } from './routes/auction.routes';
 import { lotRouter } from './routes/lot.routes';
+import { bidderRouter } from './routes/bidder.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { createSocketServer } from './socket';
 
@@ -27,6 +28,7 @@ app.use('/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/auctions', auctionRouter);
 app.use('/api', lotRouter);
+app.use('/api', bidderRouter);
 
 app.use(errorHandler);
 

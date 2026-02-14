@@ -1,8 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-const protectedPrefixes = ['/dashboard', '/auction', '/admin'];
-const protectedPatterns = [/^\/auctions\/[^/]+\/live/];
+const protectedPrefixes = ['/dashboard', '/auction', '/admin', '/profile'];
+const protectedPatterns = [/^\/auctions\/[^/]+\/live/, /^\/auctions\/[^/]+\/register/];
 const authPages = ['/login', '/register'];
 
 export function middleware(request: NextRequest) {
@@ -33,6 +33,8 @@ export const config = {
     '/auction/:path*',
     '/admin/:path*',
     '/auctions/:path*/live',
+    '/auctions/:path*/register',
+    '/profile',
     '/login',
     '/register',
   ],

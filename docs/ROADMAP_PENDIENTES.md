@@ -5,6 +5,21 @@
 
 > ?ltima actualizaci?n: 2026-02-14 - Hotfix deploy Railway (`apps/backend/railway.json`: `buildCommand` -> `npm run build`)
 
+
+
+## Bitacora de ejecucion automatica
+
+- 2026-02-14 (iteracion actual):
+  - Fase 2.1 backend postores/documentos/blacklist implementada (servicios + rutas + wiring en `index.ts`).
+  - Fase 2.2 frontend postores implementada en base funcional:
+    - `/auctions/[id]/register` (flujo 3 pasos)
+    - `/auctions/[id]/bidders` (admin verificacion con drawer y acciones)
+    - `/profile` (vista base)
+  - Seguridad PII reforzada:
+    - cifrado de `rut` en registro auth
+    - `rutMasked` en respuestas de auth y listados de postores
+  - Estado fase: Fase 2 = PARCIAL AVANZADA
+
 ---
 
 ## Estado por Semana

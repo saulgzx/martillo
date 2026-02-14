@@ -57,6 +57,16 @@ enum PaymentStatus {
   OVERDUE
 }
 
+enum DocumentType {
+  IDENTITY
+  ADDRESS
+}
+
+enum LiquidationStatus {
+  PENDING
+  PAID
+}
+
 model User {
   id                     String         @id @default(cuid())
   email                  String         @unique
@@ -73,6 +83,10 @@ model User {
   verifiedBidders        Bidder[]       @relation("BidderVerifier")
   adjudicationsPerformed Adjudication[] @relation("AdjudicationActor")
   auditLogs              AuditLog[]     @relation("AuditActor")
+  consignorProfiles      Consignor[]
+  notifications          Notification[]
+  blacklistEntries       BlackList[]    @relation("BlacklistedUser")
+  createdBlacklist       BlackList[]    @relation("BlacklistActor")
 }
 
 model Auction {
@@ -90,6 +104,7 @@ model Auction {
   createdBy     User          @relation("AuctionCreator", fields: [createdById], references: [id])
   lots          Lot[]
   bidders       Bidder[]
+  blacklistEntries BlackList[]
 
   @@index([status])
   @@index([startAt])
@@ -114,6 +129,7 @@ model Lot {
   media          LotMedia[]
   bids           Bid[]
   adjudication   Adjudication?
+  consignors     LotConsignor[]
 
   @@index([auctionId])
   @@index([winnerBidderId])
@@ -146,6 +162,7 @@ model Bidder {
   verifiedBy   User?        @relation("BidderVerifier", fields: [verifiedById], references: [id])
   bids         Bid[]
   wonLots      Lot[]        @relation("LotWinner")
+  documents    BidderDocument[]
 
   @@unique([auctionId, paddleNumber])
   @@unique([userId, auctionId])
@@ -211,4 +228,68 @@ model AuditLog {
 
   @@index([entity, entityId])
   @@index([createdAt])
+}
+
+model Consignor {
+  id           String         @id @default(cuid())
+  userId       String
+  businessName String
+  bankAccount  String
+  contactEmail String
+  createdAt    DateTime       @default(now())
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lots         LotConsignor[]
+
+  @@index([userId])
+}
+
+model LotConsignor {
+  id                String            @id @default(cuid())
+  lotId             String
+  consignorId       String
+  agreedPrice       Decimal           @db.Decimal(12, 2)
+  liquidationStatus LiquidationStatus @default(PENDING)
+  lot               Lot               @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  consignor         Consignor         @relation(fields: [consignorId], references: [id], onDelete: Cascade)
+
+  @@unique([lotId, consignorId])
+  @@index([consignorId])
+}
+
+model BidderDocument {
+  id           String       @id @default(cuid())
+  bidderId     String
+  type         DocumentType
+  cloudinaryId String
+  uploadedAt   DateTime     @default(now())
+  bidder       Bidder       @relation(fields: [bidderId], references: [id], onDelete: Cascade)
+
+  @@index([bidderId, type])
+}
+
+model BlackList {
+  id         String   @id @default(cuid())
+  userId     String
+  reason     String
+  bannedById String
+  bannedAt   DateTime @default(now())
+  auctionId  String?
+  user       User     @relation("BlacklistedUser", fields: [userId], references: [id], onDelete: Cascade)
+  bannedBy   User     @relation("BlacklistActor", fields: [bannedById], references: [id], onDelete: Cascade)
+  auction    Auction? @relation(fields: [auctionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, auctionId])
+  @@index([bannedAt])
+}
+
+model Notification {
+  id      String   @id @default(cuid())
+  userId  String
+  type    String
+  payload Json
+  sentAt  DateTime @default(now())
+  readAt  DateTime?
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, sentAt])
 }

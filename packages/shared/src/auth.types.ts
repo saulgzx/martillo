@@ -26,6 +26,7 @@ export interface UserPublic {
   email: string;
   role: UserRole;
   fullName: string;
+  rutMasked?: string;
   phone?: string | null;
   status: UserStatus;
   createdAt: string | Date;
