@@ -45,6 +45,10 @@
     - `/health` mejorado con estado `ok/degraded/error`, chequeo DB/Redis, version y uptime.
   - Seed de pruebas actualizado:
     - Nuevas cuentas persistentes de prueba (ADMIN/BIDDER) agregadas en `apps/backend/prisma/seed.js`.
+  - Hotfix auth frontend por rol:
+    - redirección post-login/post-register según rol
+    - cookie `martillo_role` para middleware
+    - bloqueo de `/admin` para roles no administrativos
 
 ---
 

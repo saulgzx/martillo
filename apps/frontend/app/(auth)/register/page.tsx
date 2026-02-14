@@ -10,6 +10,7 @@ import { FormField } from '@/components/forms/FormField';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { isValidChileanRut } from '@/lib/rut';
 import { useAuthStore } from '@/store/auth.store';
+import { resolveHomePathByUser } from '@/lib/auth-routing';
 
 const registerSchema = z
   .object({
@@ -34,6 +35,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export default function RegisterPage() {
   const router = useRouter();
   const registerUser = useAuthStore((state) => state.register);
+  const user = useAuthStore((state) => state.user);
   const isLoading = useAuthStore((state) => state.isLoading);
 
   const {
@@ -52,7 +54,8 @@ export default function RegisterPage() {
       phone: values.phone,
       password: values.password,
     });
-    router.push('/dashboard');
+    const nextUser = useAuthStore.getState().user ?? user;
+    router.push(resolveHomePathByUser(nextUser));
   };
 
   return (

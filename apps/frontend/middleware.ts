@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+const adminRoles = new Set(['SUPERADMIN', 'ADMIN', 'AUCTIONEER']);
 const protectedPrefixes = [
   '/dashboard',
   '/auction',
@@ -15,6 +16,7 @@ const authPages = ['/login', '/register'];
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const authFlag = request.cookies.get('martillo_auth')?.value;
+  const role = request.cookies.get('martillo_role')?.value;
   const isAuthenticated = authFlag === '1';
 
   const isProtected =
@@ -27,8 +29,14 @@ export function middleware(request: NextRequest) {
 
   const isAuthPage = authPages.some((prefix) => pathname.startsWith(prefix));
   if (isAuthPage && isAuthenticated) {
-    const dashboardUrl = new URL('/dashboard', request.url);
-    return NextResponse.redirect(dashboardUrl);
+    const homeUrl = new URL(adminRoles.has(role ?? '') ? '/admin/auctions' : '/dashboard', request.url);
+    return NextResponse.redirect(homeUrl);
+  }
+
+  const isAdminRoute = pathname.startsWith('/admin');
+  if (isAdminRoute && !adminRoles.has(role ?? '')) {
+    const homeUrl = new URL('/dashboard', request.url);
+    return NextResponse.redirect(homeUrl);
   }
 
   return NextResponse.next();

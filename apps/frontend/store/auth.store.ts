@@ -1,7 +1,13 @@
 'use client';
 
 import { create } from 'zustand';
-import type { AuthResponse, LoginRequest, RegisterRequest, UserPublic } from '@martillo/shared';
+import type {
+  AuthResponse,
+  LoginRequest,
+  RegisterRequest,
+  UserPublic,
+  UserRole,
+} from '@martillo/shared';
 import { apiClient, configureApiAuth } from '@/lib/api';
 
 type AuthState = {
@@ -25,6 +31,15 @@ function setAuthFlagCookie(active: boolean): void {
   document.cookie = 'martillo_auth=; path=/; max-age=0; samesite=lax';
 }
 
+function setRoleCookie(role: UserRole | null): void {
+  if (typeof document === 'undefined') return;
+  if (role) {
+    document.cookie = `martillo_role=${role}; path=/; max-age=604800; samesite=lax`;
+    return;
+  }
+  document.cookie = 'martillo_role=; path=/; max-age=0; samesite=lax';
+}
+
 const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   accessToken: null,
@@ -45,6 +60,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: true,
       });
       setAuthFlagCookie(true);
+      setRoleCookie(response.data.data.user.role);
     } finally {
       set({ isLoading: false });
     }
@@ -64,6 +80,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: true,
       });
       setAuthFlagCookie(true);
+      setRoleCookie(response.data.data.user.role);
     } finally {
       set({ isLoading: false });
     }
@@ -77,6 +94,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
     } finally {
       set({ user: null, accessToken: null, isAuthenticated: false });
       setAuthFlagCookie(false);
+      setRoleCookie(null);
     }
   },
 
@@ -101,11 +119,13 @@ const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: true,
       });
       setAuthFlagCookie(true);
+      setRoleCookie(user?.role ?? null);
 
       return accessToken;
     } catch {
       set({ user: null, accessToken: null, isAuthenticated: false });
       setAuthFlagCookie(false);
+      setRoleCookie(null);
       return null;
     }
   },
@@ -113,6 +133,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
   setUser(user) {
     set({ user, isAuthenticated: Boolean(user) });
     setAuthFlagCookie(Boolean(user));
+    setRoleCookie(user?.role ?? null);
   },
 }));
 

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { FormField } from '@/components/forms/FormField';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { useAuthStore } from '@/store/auth.store';
+import { resolveHomePathByUser } from '@/lib/auth-routing';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -24,6 +25,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const login = useAuthStore((state) => state.login);
+  const user = useAuthStore((state) => state.user);
   const isLoading = useAuthStore((state) => state.isLoading);
 
   const {
@@ -38,7 +40,8 @@ export default function LoginPage() {
     setApiError(null);
     try {
       await login(values);
-      router.push('/dashboard');
+      const nextUser = useAuthStore.getState().user ?? user;
+      router.push(resolveHomePathByUser(nextUser));
     } catch (error) {
       const axiosError = error as AxiosError<{ message?: string }>;
       const message = axiosError.response?.data?.message;

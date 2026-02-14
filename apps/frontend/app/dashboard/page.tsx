@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/common/Logo';
 import { useAuthStore } from '@/store/auth.store';
+import { isAdminRole } from '@/lib/auth-routing';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -14,8 +15,13 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!user) {
       void useAuthStore.getState().refreshToken();
+      return;
     }
-  }, [user]);
+
+    if (isAdminRole(user.role)) {
+      router.replace('/admin/auctions');
+    }
+  }, [router, user]);
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-8 px-6 py-10">
