@@ -66,6 +66,8 @@
   - Auditoría de dependencias ejecutada:
     - `npm audit --audit-level=moderate` realizado.
     - Pendientes documentados en `docs/SECURITY_REPORT_2026-02-14.md` (requieren upgrades mayores de Next/ESLint config).
+  - Verificación de entorno prod (Railway):
+    - estado documentado en `docs/PROD_ENV_STATUS_2026-02-14.md` (presentes/faltantes).
 
 ---
 
@@ -537,7 +539,7 @@ npm install swagger-ui-express swagger-jsdoc -w apps/backend
 - `apps/backend/scripts/smoke-test.ts`
 
 **Tareas:**
-- [ ] Verificar TODAS las env vars en Railway producciÃ³n
+- [x] Verificar TODAS las env vars en Railway producciÃ³n
 - [ ] Verificar TODAS las env vars en Vercel producciÃ³n
 - [ ] Merge develop â†’ main, verificar pipeline verde
 - [x] Crear script smoke-test (esqueleto):
