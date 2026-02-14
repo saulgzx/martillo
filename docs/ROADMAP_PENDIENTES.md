@@ -59,6 +59,9 @@
   - Backend S8:
     - Swagger base integrado (`/api/docs`) solo en no-producción.
     - Documentación OpenAPI agregada para login, auctions public, bidder register, payment webhook y eventos socket.
+  - Auditoría de dependencias ejecutada:
+    - `npm audit --audit-level=moderate` realizado.
+    - Pendientes documentados en `docs/SECURITY_REPORT_2026-02-14.md` (requieren upgrades mayores de Next/ESLint config).
 
 ---
 
@@ -435,8 +438,8 @@ npm install winston -w apps/backend
   - `POST /api/auth/register` â†’ 3/hora por IP âœ… implementado
   - `POST /api/lots/:id/media` â†’ 20/hora por usuario âœ… implementado
 - [ ] Verificar headers HTTP: helmet con HSTS, CSP, X-Frame-Options
-- [ ] Ejecutar `npm audit --audit-level=moderate` y corregir
-- [ ] Generar reporte de seguridad
+- [x] Ejecutar `npm audit --audit-level=moderate` y corregir (pendientes mayores documentados)
+- [x] Generar reporte de seguridad
 
 ---
 
