@@ -61,6 +61,8 @@
     - Documentación OpenAPI agregada para login, auctions public, bidder register, payment webhook y eventos socket.
     - Script de verificación de backup/DB agregado (`apps/backend/scripts/verify-backup.js`).
     - `prisma/seed.js` preparado para modo producción con SUPERADMIN por env vars.
+  - Seguridad operativa:
+    - script `qa:check-headers` agregado para validar headers HTTP de `/health`.
   - Auditoría de dependencias ejecutada:
     - `npm audit --audit-level=moderate` realizado.
     - Pendientes documentados en `docs/SECURITY_REPORT_2026-02-14.md` (requieren upgrades mayores de Next/ESLint config).

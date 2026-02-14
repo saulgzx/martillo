@@ -16,7 +16,8 @@
     "qa:reconnect-test": "node scripts/reconnect-test-auction.js",
     "qa:smoke-test": "node scripts/smoke-test.js",
     "qa:e2e-check": "node scripts/e2e-check.js",
-    "qa:verify-backup": "node scripts/verify-backup.js"
+    "qa:verify-backup": "node scripts/verify-backup.js",
+    "qa:check-headers": "node scripts/check-security-headers.js"
   },
   "dependencies": {
     "@prisma/client": "^6.16.2",

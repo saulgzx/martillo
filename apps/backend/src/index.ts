@@ -19,15 +19,15 @@ const app = express();
 const server = createServer(app);
 const PORT = Number(process.env.PORT) || env.PORT || 4000;
 
-// Routes
-app.use('/api/health', healthRouter);
-app.use('/health', healthRouter);
-
 // Middleware
 applySecurityMiddleware(app);
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(cookieParser());
+
+// Routes
+app.use('/api/health', healthRouter);
+app.use('/health', healthRouter);
 
 // Functional routes
 app.use('/api/auth', authRouter);
