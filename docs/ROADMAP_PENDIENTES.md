@@ -3,6 +3,8 @@
 > Generado: 2026-02-13 | Progreso actual: ~50% del MVP
 > Basado en anÃ¡lisis exhaustivo del cÃ³digo vs guÃ­a de 18 prompts
 
+> ?ltima actualizaci?n: 2026-02-14 - Hotfix deploy Railway (`apps/backend/railway.json`: `buildCommand` -> `npm run build`)
+
 ---
 
 ## Estado por Semana
