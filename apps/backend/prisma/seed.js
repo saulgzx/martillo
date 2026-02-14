@@ -7,6 +7,8 @@ const prisma = new PrismaClient();
 async function main() {
   const adminPasswordHash = await bcrypt.hash('Admin12345!', 12);
   const agonzPasswordHash = await bcrypt.hash('Agonz123', 12);
+  const qaAdminPasswordHash = await bcrypt.hash('AdminMartillo123!', 12);
+  const qaClientPasswordHash = await bcrypt.hash('ClienteMartillo123!', 12);
 
   const admin = await prisma.user.upsert({
     where: { email: 'admin@martillo.com' },
@@ -42,6 +44,44 @@ async function main() {
       fullName: 'Agonz',
       rut: '12.345.678-5',
       phone: '+56912345678',
+      status: 'ACTIVE',
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: 'admin.test@martillo.com' },
+    update: {
+      fullName: 'Admin Test Martillo',
+      role: Role.ADMIN,
+      status: 'ACTIVE',
+      passwordHash: qaAdminPasswordHash,
+    },
+    create: {
+      email: 'admin.test@martillo.com',
+      passwordHash: qaAdminPasswordHash,
+      role: Role.ADMIN,
+      fullName: 'Admin Test Martillo',
+      rut: '10.000.000-1',
+      phone: '+56910000001',
+      status: 'ACTIVE',
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: 'cliente.test@martillo.com' },
+    update: {
+      fullName: 'Cliente Test Martillo',
+      role: Role.BIDDER,
+      status: 'ACTIVE',
+      passwordHash: qaClientPasswordHash,
+    },
+    create: {
+      email: 'cliente.test@martillo.com',
+      passwordHash: qaClientPasswordHash,
+      role: Role.BIDDER,
+      fullName: 'Cliente Test Martillo',
+      rut: '10.000.000-2',
+      phone: '+56910000002',
       status: 'ACTIVE',
     },
   });

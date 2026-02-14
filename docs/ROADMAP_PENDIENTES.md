@@ -43,6 +43,8 @@
     - Specs base creadas: `auth.spec.ts`, `catalog.spec.ts`, `bidder-flow.spec.ts`, `auction.spec.ts`.
   - Backend S8:
     - `/health` mejorado con estado `ok/degraded/error`, chequeo DB/Redis, version y uptime.
+  - Seed de pruebas actualizado:
+    - Nuevas cuentas persistentes de prueba (ADMIN/BIDDER) agregadas en `apps/backend/prisma/seed.js`.
 
 ---
 
