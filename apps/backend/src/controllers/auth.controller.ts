@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { Role, UserStatus } from '@prisma/client';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
@@ -78,133 +78,153 @@ function toPublicUser(user: {
   };
 }
 
-export async function register(req: Request, res: Response): Promise<void> {
-  const parsed = registerSchema.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ success: false, message: parsed.error.flatten() });
-    return;
+export async function register(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const parsed = registerSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, message: parsed.error.flatten() });
+      return;
+    }
+
+    const { email, password, fullName, rut, phone } = parsed.data;
+
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      res.status(409).json({ success: false, message: 'Email already exists' });
+      return;
+    }
+
+    const passwordHash = await authService.hashPassword(password);
+    const user = await prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        role: Role.BIDDER,
+        fullName,
+        rut: encryptPII(rut),
+        phone,
+        status: UserStatus.ACTIVE,
+      },
+    });
+
+    const tokens = await authService.generateTokens(user.id, user.role);
+    res.cookie('refreshToken', tokens.refreshToken, getRefreshCookieOptions());
+
+    await sendWelcome({
+      to: user.email,
+      name: user.fullName,
+    });
+
+    res.status(201).json({
+      success: true,
+      data: {
+        accessToken: tokens.accessToken,
+        user: toPublicUser(user),
+      },
+    });
+  } catch (error) {
+    next(error);
   }
-
-  const { email, password, fullName, rut, phone } = parsed.data;
-
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    res.status(409).json({ success: false, message: 'Email already exists' });
-    return;
-  }
-
-  const passwordHash = await authService.hashPassword(password);
-  const user = await prisma.user.create({
-    data: {
-      email,
-      passwordHash,
-      role: Role.BIDDER,
-      fullName,
-      rut: encryptPII(rut),
-      phone,
-      status: UserStatus.ACTIVE,
-    },
-  });
-
-  const tokens = await authService.generateTokens(user.id, user.role);
-  res.cookie('refreshToken', tokens.refreshToken, getRefreshCookieOptions());
-
-  await sendWelcome({
-    to: user.email,
-    name: user.fullName,
-  });
-
-  res.status(201).json({
-    success: true,
-    data: {
-      accessToken: tokens.accessToken,
-      user: toPublicUser(user),
-    },
-  });
 }
 
-export async function login(req: Request, res: Response): Promise<void> {
-  const parsed = loginSchema.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ success: false, message: parsed.error.flatten() });
-    return;
+export async function login(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const parsed = loginSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, message: parsed.error.flatten() });
+      return;
+    }
+
+    const { email, password } = parsed.data;
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      res.status(401).json({ success: false, message: 'Invalid credentials' });
+      return;
+    }
+
+    const valid = await authService.comparePassword(password, user.passwordHash);
+    if (!valid) {
+      res.status(401).json({ success: false, message: 'Invalid credentials' });
+      return;
+    }
+
+    const tokens = await authService.generateTokens(user.id, user.role);
+    res.cookie('refreshToken', tokens.refreshToken, getRefreshCookieOptions());
+
+    res.json({
+      success: true,
+      data: {
+        accessToken: tokens.accessToken,
+        user: toPublicUser(user),
+      },
+    });
+  } catch (error) {
+    next(error);
   }
-
-  const { email, password } = parsed.data;
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) {
-    res.status(401).json({ success: false, message: 'Invalid credentials' });
-    return;
-  }
-
-  const valid = await authService.comparePassword(password, user.passwordHash);
-  if (!valid) {
-    res.status(401).json({ success: false, message: 'Invalid credentials' });
-    return;
-  }
-
-  const tokens = await authService.generateTokens(user.id, user.role);
-  res.cookie('refreshToken', tokens.refreshToken, getRefreshCookieOptions());
-
-  res.json({
-    success: true,
-    data: {
-      accessToken: tokens.accessToken,
-      user: toPublicUser(user),
-    },
-  });
 }
 
-export async function refresh(req: Request, res: Response): Promise<void> {
-  const refreshToken = req.cookies?.refreshToken as string | undefined;
-  if (!refreshToken) {
-    res.status(401).json({ success: false, message: 'Unauthorized' });
-    return;
-  }
+export async function refresh(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const refreshToken = req.cookies?.refreshToken as string | undefined;
+    if (!refreshToken) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
 
-  const tokens = await authService.refreshTokens(refreshToken);
-  if (!tokens) {
-    res.status(401).json({ success: false, message: 'Unauthorized' });
-    return;
-  }
+    const tokens = await authService.refreshTokens(refreshToken);
+    if (!tokens) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
 
-  res.cookie('refreshToken', tokens.refreshToken, getRefreshCookieOptions());
-  res.json({
-    success: true,
-    data: {
-      accessToken: tokens.accessToken,
-    },
-  });
+    res.cookie('refreshToken', tokens.refreshToken, getRefreshCookieOptions());
+    res.json({
+      success: true,
+      data: {
+        accessToken: tokens.accessToken,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
 }
 
-export async function logout(req: Request, res: Response): Promise<void> {
-  const refreshToken = req.cookies?.refreshToken as string | undefined;
-  if (refreshToken) {
-    await authService.revokeRefreshToken(refreshToken);
-  }
+export async function logout(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const refreshToken = req.cookies?.refreshToken as string | undefined;
+    if (refreshToken) {
+      await authService.revokeRefreshToken(refreshToken);
+    }
 
-  res.clearCookie('refreshToken', {
-    path: '/',
-    sameSite: env.NODE_ENV === 'production' ? 'none' : 'strict',
-    secure: env.NODE_ENV === 'production',
-  });
-  res.status(204).send();
+    res.clearCookie('refreshToken', {
+      path: '/',
+      sameSite: env.NODE_ENV === 'production' ? 'none' : 'strict',
+      secure: env.NODE_ENV === 'production',
+    });
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
 }
 
-export async function me(req: Request, res: Response): Promise<void> {
-  if (!req.user?.id) {
-    res.status(401).json({ success: false, message: 'Unauthorized' });
-    return;
-  }
+export async function me(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    if (!req.user?.id) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
 
-  const user = await prisma.user.findUnique({ where: { id: req.user.id } });
-  if (!user) {
-    res.status(404).json({ success: false, message: 'User not found' });
-    return;
-  }
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
 
-  res.json({
-    success: true,
-    data: toPublicUser(user),
-  });
+    res.json({
+      success: true,
+      data: toPublicUser(user),
+    });
+  } catch (error) {
+    next(error);
+  }
 }

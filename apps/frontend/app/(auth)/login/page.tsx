@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { AxiosError } from 'axios';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   const login = useAuthStore((state) => state.login);
   const isLoading = useAuthStore((state) => state.isLoading);
 
@@ -33,8 +35,15 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (values: LoginFormValues) => {
-    await login(values);
-    router.push('/dashboard');
+    setApiError(null);
+    try {
+      await login(values);
+      router.push('/dashboard');
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      const message = axiosError.response?.data?.message;
+      setApiError(typeof message === 'string' ? message : 'No se pudo iniciar sesiÃ³n');
+    }
   };
 
   return (
@@ -76,6 +85,10 @@ export default function LoginPage() {
           'Ingresar'
         )}
       </Button>
+
+      {apiError ? (
+        <p className="text-center text-sm font-medium text-destructive">{apiError}</p>
+      ) : null}
 
       <p className="text-center text-sm text-muted-foreground">
         ¿No tienes cuenta?{' '}

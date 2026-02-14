@@ -25,6 +25,10 @@
   - Fase 3.3 frontend pagos implementada en base funcional (`/payments/[id]`, `/payments/return`, `/my-adjudications`, admin placeholder).
   - Estado fase: Fase 3 = PARCIAL AVANZADA
   - Fase 4 inicial: logger seguro (winston) y headers de seguridad frontend en `next.config.js`.
+  - Hotfix login:
+    - Backend auth controllers con manejo explicito de errores (sin fallas silenciosas).
+    - Fallback de store de refresh token en memoria si Redis no responde (login no se cae).
+    - Frontend login muestra mensaje de error real devuelto por API.
 
 ---
 
