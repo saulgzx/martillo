@@ -13,8 +13,21 @@ export function configureApiAuth(config: AuthConfig): void {
   authConfig = config;
 }
 
+function resolveApiBaseUrl(): string {
+  const raw = process.env.NEXT_PUBLIC_API_URL?.trim() ?? '';
+  if (!raw) return '';
+
+  const withoutTrailingSlash = raw.replace(/\/+$/, '');
+  if (/^https?:\/\//i.test(withoutTrailingSlash)) {
+    return withoutTrailingSlash;
+  }
+
+  // Defensive fallback: if env var is set without protocol, default to https.
+  return `https://${withoutTrailingSlash}`;
+}
+
 export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: resolveApiBaseUrl(),
   withCredentials: true,
 });
 
