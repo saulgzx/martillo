@@ -23,6 +23,7 @@
   - Fase 3.2 email base implementada (Resend + templates + integraciones en register/approve/reject/pago).
   - Fase 3.3 frontend pagos implementada en base funcional (`/payments/[id]`, `/payments/return`, `/my-adjudications`, admin placeholder).
   - Estado fase: Fase 3 = PARCIAL AVANZADA
+  - Fase 4 inicial: logger seguro (winston) y headers de seguridad frontend en `next.config.js`.
 
 ---
 

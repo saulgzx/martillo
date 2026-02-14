@@ -12,6 +12,7 @@ import { bidderRouter } from './routes/bidder.routes';
 import { paymentRouter } from './routes/payment.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { createSocketServer } from './socket';
+import { logger } from './utils/logger';
 
 const app = express();
 const server = createServer(app);
@@ -37,7 +38,7 @@ app.use(errorHandler);
 createSocketServer(server);
 
 server.listen(PORT, () => {
-  console.log(`[Martillo API] Server running on http://localhost:${PORT}`);
+  logger.info(`[Martillo API] Server running on http://localhost:${PORT}`);
 });
 
 export default app;
