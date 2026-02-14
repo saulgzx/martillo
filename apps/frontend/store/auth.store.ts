@@ -16,6 +16,15 @@ type AuthState = {
   setUser: (user: UserPublic | null) => void;
 };
 
+function setAuthFlagCookie(active: boolean): void {
+  if (typeof document === 'undefined') return;
+  if (active) {
+    document.cookie = 'martillo_auth=1; path=/; max-age=604800; samesite=lax';
+    return;
+  }
+  document.cookie = 'martillo_auth=; path=/; max-age=0; samesite=lax';
+}
+
 const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   accessToken: null,
@@ -35,6 +44,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
         accessToken: response.data.data.accessToken,
         isAuthenticated: true,
       });
+      setAuthFlagCookie(true);
     } finally {
       set({ isLoading: false });
     }
@@ -53,6 +63,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
         accessToken: response.data.data.accessToken,
         isAuthenticated: true,
       });
+      setAuthFlagCookie(true);
     } finally {
       set({ isLoading: false });
     }
@@ -65,6 +76,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
       // Best effort logout.
     } finally {
       set({ user: null, accessToken: null, isAuthenticated: false });
+      setAuthFlagCookie(false);
     }
   },
 
@@ -88,16 +100,19 @@ const useAuthStore = create<AuthState>((set, get) => ({
         user,
         isAuthenticated: true,
       });
+      setAuthFlagCookie(true);
 
       return accessToken;
     } catch {
       set({ user: null, accessToken: null, isAuthenticated: false });
+      setAuthFlagCookie(false);
       return null;
     }
   },
 
   setUser(user) {
     set({ user, isAuthenticated: Boolean(user) });
+    setAuthFlagCookie(Boolean(user));
   },
 }));
 

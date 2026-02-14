@@ -14,8 +14,8 @@ const authPages = ['/login', '/register'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const refreshToken = request.cookies.get('refreshToken')?.value;
-  const isAuthenticated = Boolean(refreshToken);
+  const authFlag = request.cookies.get('martillo_auth')?.value;
+  const isAuthenticated = authFlag === '1';
 
   const isProtected =
     protectedPrefixes.some((prefix) => pathname.startsWith(prefix)) ||

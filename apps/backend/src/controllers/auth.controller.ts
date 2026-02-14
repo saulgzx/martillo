@@ -29,17 +29,18 @@ const loginSchema = z.object({
 
 type AuthCookieOptions = {
   httpOnly: true;
-  sameSite: 'strict';
+  sameSite: 'strict' | 'none';
   secure: boolean;
   path: '/';
   maxAge: number;
 };
 
 function getRefreshCookieOptions(): AuthCookieOptions {
+  const isProduction = env.NODE_ENV === 'production';
   return {
     httpOnly: true,
-    sameSite: 'strict',
-    secure: env.NODE_ENV === 'production',
+    sameSite: isProduction ? 'none' : 'strict',
+    secure: isProduction,
     path: '/',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   };
@@ -182,7 +183,11 @@ export async function logout(req: Request, res: Response): Promise<void> {
     await authService.revokeRefreshToken(refreshToken);
   }
 
-  res.clearCookie('refreshToken', { path: '/' });
+  res.clearCookie('refreshToken', {
+    path: '/',
+    sameSite: env.NODE_ENV === 'production' ? 'none' : 'strict',
+    secure: env.NODE_ENV === 'production',
+  });
   res.status(204).send();
 }
 
