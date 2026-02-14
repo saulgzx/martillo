@@ -1,7 +1,14 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-const protectedPrefixes = ['/dashboard', '/auction', '/admin', '/profile'];
+const protectedPrefixes = [
+  '/dashboard',
+  '/auction',
+  '/admin',
+  '/profile',
+  '/payments',
+  '/my-adjudications',
+];
 const protectedPatterns = [/^\/auctions\/[^/]+\/live/, /^\/auctions\/[^/]+\/register/];
 const authPages = ['/login', '/register'];
 
@@ -35,6 +42,8 @@ export const config = {
     '/auctions/:path*/live',
     '/auctions/:path*/register',
     '/profile',
+    '/payments/:path*',
+    '/my-adjudications',
     '/login',
     '/register',
   ],

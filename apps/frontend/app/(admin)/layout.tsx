@@ -11,6 +11,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <Link href="/admin/auctions" className="block rounded px-3 py-2 hover:bg-white/10">
             Remates
           </Link>
+          <Link href="/admin/payments" className="block rounded px-3 py-2 hover:bg-white/10">
+            Pagos
+          </Link>
           <Link href="/dashboard" className="block rounded px-3 py-2 hover:bg-white/10">
             Dashboard
           </Link>

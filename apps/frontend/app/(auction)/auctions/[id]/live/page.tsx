@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { useAuctionSocket } from '@/hooks/useAuctionSocket';
 import { ConnectionStatus } from '@/components/auction/ConnectionStatus';
 import { PriceDisplay } from '@/components/auction/PriceDisplay';
@@ -92,11 +93,16 @@ export default function LiveAuctionPage() {
         <div className="rounded-lg border border-green-300 bg-green-50 p-4">
           <p className="font-semibold text-green-800">Ganaste: {wonLot.lotTitle}</p>
           <p className="text-sm text-green-700">
-            Total a pagar: {formatCLP(wonLot.total)} — Tienes 48h para pagar.
+            Total a pagar: {formatCLP(wonLot.total)} - Tienes 48h para pagar.
           </p>
-          <Button size="sm" className="mt-2" onClick={() => setWonLot(null)}>
-            Entendido
-          </Button>
+          <div className="mt-2 flex gap-2">
+            <Link href={`/payments/${wonLot.paymentId}`}>
+              <Button size="sm">Ver detalle de pago</Button>
+            </Link>
+            <Button size="sm" variant="outline" onClick={() => setWonLot(null)}>
+              Cerrar
+            </Button>
+          </div>
         </div>
       )}
 
