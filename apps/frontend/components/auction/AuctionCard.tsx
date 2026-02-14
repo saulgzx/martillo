@@ -27,12 +27,22 @@ export function AuctionCard({ auction }: AuctionCardProps) {
           {new Date(auction.date).toLocaleString('es-CL')}
         </p>
         <p className="text-sm text-muted-foreground">{auction.lots.length} lotes disponibles</p>
-        <Link
-          href={`/auctions/${auction.id}`}
-          className="text-sm font-medium text-primary underline"
-        >
-          Ver remate
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            href={`/auctions/${auction.id}`}
+            className="text-sm font-medium text-primary underline"
+          >
+            Ver remate
+          </Link>
+          {auction.status === 'LIVE' && (
+            <Link
+              href={`/auctions/${auction.id}/live`}
+              className="text-sm font-medium text-green-600 underline"
+            >
+              Sala en vivo
+            </Link>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
