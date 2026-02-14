@@ -8,7 +8,7 @@ export function isAdminRole(role: UserRole | null | undefined): boolean {
 }
 
 export function resolveHomePathByRole(role: UserRole | null | undefined): string {
-  return isAdminRole(role) ? '/admin/auctions' : '/dashboard';
+  return isAdminRole(role) ? '/admin' : '/dashboard';
 }
 
 export function resolveHomePathByUser(user: UserPublic | null | undefined): string {

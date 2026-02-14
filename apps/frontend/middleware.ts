@@ -29,7 +29,7 @@ export function middleware(request: NextRequest) {
 
   const isAuthPage = authPages.some((prefix) => pathname.startsWith(prefix));
   if (isAuthPage && isAuthenticated) {
-    const homeUrl = new URL(adminRoles.has(role ?? '') ? '/admin/auctions' : '/dashboard', request.url);
+    const homeUrl = new URL(adminRoles.has(role ?? '') ? '/admin' : '/dashboard', request.url);
     return NextResponse.redirect(homeUrl);
   }
 

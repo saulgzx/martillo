@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { Logo } from '@/components/common/Logo';
+import { AppTopbar } from '@/components/common/AppTopbar';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
@@ -8,6 +9,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <aside className="bg-brand-navy p-6 text-brand-offWhite">
         <Logo size={32} />
         <nav className="mt-8 space-y-2 text-sm">
+          <Link href="/admin" className="block rounded px-3 py-2 hover:bg-white/10">
+            Inicio Admin
+          </Link>
           <Link href="/admin/auctions" className="block rounded px-3 py-2 hover:bg-white/10">
             Remates
           </Link>
@@ -25,7 +29,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </div>
         </nav>
       </aside>
-      <section className="bg-background p-6">{children}</section>
+      <section className="bg-background p-6">
+        <div className="mb-6">
+          <AppTopbar />
+        </div>
+        {children}
+      </section>
     </main>
   );
 }

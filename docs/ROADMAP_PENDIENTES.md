@@ -65,6 +65,10 @@
     - script `qa:check-headers` agregado para validar headers HTTP de `/health`.
   - Observabilidad:
     - Sentry backend base integrado (init condicional + captura en error middleware).
+  - Prioridad UI pruebas:
+    - hub admin (`/admin`) con accesos operativos
+    - dashboard cliente mejorado con accesos directos
+    - topbar común para uso de plataforma en ambos perfiles
   - Auditoría de dependencias ejecutada:
     - `npm audit --audit-level=moderate` realizado.
     - Pendientes documentados en `docs/SECURITY_REPORT_2026-02-14.md` (requieren upgrades mayores de Next/ESLint config).
