@@ -114,7 +114,7 @@ async function main() {
     },
   });
 
-  await prisma.user.upsert({
+  const qaClient = await prisma.user.upsert({
     where: { email: 'cliente.test@martillo.com' },
     update: {
       fullName: 'Cliente Test Martillo',
@@ -133,63 +133,133 @@ async function main() {
     },
   });
 
+  // Public demo auctions expected by the frontend routes: /auctions/remate-001, /auctions/remate-002
+  // IDs are explicit strings to keep URLs stable in the UI skeleton (no slug system yet).
   const now = new Date();
-  const startAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-  const endAt = new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000);
+  const publishedStartAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const publishedEndAt = new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000);
+  const liveStartAt = new Date(now.getTime() - 1 * 60 * 60 * 1000);
+  const liveEndAt = new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000);
 
-  const existingAuction = await prisma.auction.findFirst({
-    where: { title: 'Remate de Demostracion', createdById: admin.id },
-    include: { lots: true },
+  const auctionPublished = await prisma.auction.upsert({
+    where: { id: 'remate-001' },
+    update: {
+      title: 'Remate de Arte y Coleccion',
+      description: 'Remate demo para pruebas funcionales.',
+      startAt: publishedStartAt,
+      endAt: publishedEndAt,
+      status: AuctionStatus.PUBLISHED,
+      commissionPct: '10.00',
+      terms: 'Participacion sujeta a aprobacion previa y terminos del remate.',
+      createdById: admin.id,
+    },
+    create: {
+      id: 'remate-001',
+      title: 'Remate de Arte y Coleccion',
+      description: 'Remate demo para pruebas funcionales.',
+      startAt: publishedStartAt,
+      endAt: publishedEndAt,
+      status: AuctionStatus.PUBLISHED,
+      commissionPct: '10.00',
+      terms: 'Participacion sujeta a aprobacion previa y terminos del remate.',
+      createdById: admin.id,
+    },
   });
 
-  if (!existingAuction) {
-    await prisma.auction.create({
-      data: {
-        title: 'Remate de Demostracion',
-        description: 'Remate base generado por seed',
-        startAt,
-        endAt,
-        status: AuctionStatus.DRAFT,
-        commissionPct: '10.00',
-        terms: 'Terminos de ejemplo para entorno de desarrollo.',
-        createdById: admin.id,
-        lots: {
-          create: [
-            {
-              title: 'Lote 1 - Reloj antiguo',
-              description: 'Pieza de coleccion.',
-              basePrice: '100000.00',
-              minIncrement: '5000.00',
-              currentPrice: '100000.00',
-              status: LotStatus.DRAFT,
-              orderIndex: 1,
-              category: 'Coleccionismo',
-            },
-            {
-              title: 'Lote 2 - Cuadro oleo',
-              description: 'Obra enmarcada.',
-              basePrice: '250000.00',
-              minIncrement: '10000.00',
-              currentPrice: '250000.00',
-              status: LotStatus.DRAFT,
-              orderIndex: 2,
-              category: 'Arte',
-            },
-            {
-              title: 'Lote 3 - Camara vintage',
-              description: 'Camara fotografica clasica.',
-              basePrice: '180000.00',
-              minIncrement: '8000.00',
-              currentPrice: '180000.00',
-              status: LotStatus.DRAFT,
-              orderIndex: 3,
-              category: 'Tecnologia',
-            },
-          ],
-        },
+  const auctionLive = await prisma.auction.upsert({
+    where: { id: 'remate-002' },
+    update: {
+      title: 'Remate en Vivo - Tecnologia Clasica',
+      description: 'Remate demo en vivo para pruebas de pujas.',
+      startAt: liveStartAt,
+      endAt: liveEndAt,
+      status: AuctionStatus.LIVE,
+      commissionPct: '10.00',
+      terms: 'Participacion sujeta a aprobacion previa y terminos del remate.',
+      createdById: admin.id,
+    },
+    create: {
+      id: 'remate-002',
+      title: 'Remate en Vivo - Tecnologia Clasica',
+      description: 'Remate demo en vivo para pruebas de pujas.',
+      startAt: liveStartAt,
+      endAt: liveEndAt,
+      status: AuctionStatus.LIVE,
+      commissionPct: '10.00',
+      terms: 'Participacion sujeta a aprobacion previa y terminos del remate.',
+      createdById: admin.id,
+    },
+  });
+
+  await prisma.lot.deleteMany({ where: { auctionId: auctionPublished.id } });
+  await prisma.lot.deleteMany({ where: { auctionId: auctionLive.id } });
+
+  await prisma.lot.createMany({
+    data: [
+      {
+        id: 'lot-remate-001-1',
+        auctionId: auctionPublished.id,
+        title: 'Oleografiado Siglo XIX',
+        description: 'Pieza en marco restaurado.',
+        basePrice: '250000.00',
+        minIncrement: '10000.00',
+        currentPrice: '250000.00',
+        status: LotStatus.PUBLISHED,
+        orderIndex: 1,
+        category: 'Arte',
       },
-    });
-  }
+      {
+        id: 'lot-remate-001-2',
+        auctionId: auctionPublished.id,
+        title: 'Camara Vintage 1950',
+        description: 'Equipo funcional con estuche.',
+        basePrice: '180000.00',
+        minIncrement: '8000.00',
+        currentPrice: '180000.00',
+        status: LotStatus.PUBLISHED,
+        orderIndex: 2,
+        category: 'Tecnologia',
+      },
+      {
+        id: 'lot-remate-002-1',
+        auctionId: auctionLive.id,
+        title: 'Radio clasica',
+        description: 'Radio antigua en buen estado.',
+        basePrice: '120000.00',
+        minIncrement: '5000.00',
+        currentPrice: '120000.00',
+        status: LotStatus.ACTIVE,
+        orderIndex: 1,
+        category: 'Tecnologia',
+      },
+    ],
+  });
+
+  // Create a draft auction for admin flows (optional) if it doesn't exist yet.
+  await prisma.auction.upsert({
+    where: { id: 'remate-draft' },
+    update: {
+      title: 'Remate de Demostracion',
+      description: 'Remate base generado por seed',
+      startAt: publishedStartAt,
+      endAt: publishedEndAt,
+      status: AuctionStatus.DRAFT,
+      commissionPct: '10.00',
+      terms: 'Terminos de ejemplo para entorno de desarrollo.',
+      createdById: admin.id,
+    },
+    create: {
+      id: 'remate-draft',
+      title: 'Remate de Demostracion',
+      description: 'Remate base generado por seed',
+      startAt: publishedStartAt,
+      endAt: publishedEndAt,
+      status: AuctionStatus.DRAFT,
+      commissionPct: '10.00',
+      terms: 'Terminos de ejemplo para entorno de desarrollo.',
+      createdById: admin.id,
+    },
+  });
 }
 
 main()
