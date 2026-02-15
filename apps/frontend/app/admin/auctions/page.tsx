@@ -7,7 +7,7 @@ export default function AdminAuctionsPage() {
   return (
     <div className="space-y-6">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-foreground">Gestión de Remates</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Gestion de Remates</h1>
         <button className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
           Nuevo Remate
         </button>
@@ -17,7 +17,7 @@ export default function AdminAuctionsPage() {
         rows={mockAuctions}
         rowKey={(row) => row.id}
         columns={[
-          { key: 'title', header: 'Título', render: (row) => row.title },
+          { key: 'title', header: 'Titulo', render: (row) => row.title },
           {
             key: 'date',
             header: 'Fecha',
@@ -33,9 +33,23 @@ export default function AdminAuctionsPage() {
             key: 'actions',
             header: 'Acciones',
             render: (row) => (
-              <Link href={`/admin/auctions/${row.id}/lots`} className="text-primary underline">
-                Ver lotes
-              </Link>
+              <div className="flex flex-wrap gap-3">
+                <Link href={`/admin/auctions/${row.id}/lots`} className="text-primary underline">
+                  Ver lotes
+                </Link>
+                <Link
+                  href={`/admin/auctions/${row.id}/bidders`}
+                  className="text-primary underline"
+                >
+                  Postores
+                </Link>
+                <Link
+                  href={`/admin/auctions/${row.id}/control`}
+                  className="text-primary underline"
+                >
+                  Control
+                </Link>
+              </div>
             ),
           },
         ]}
@@ -43,3 +57,4 @@ export default function AdminAuctionsPage() {
     </div>
   );
 }
+

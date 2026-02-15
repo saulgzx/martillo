@@ -12,6 +12,23 @@ type NotificationRow = {
   readAt: string | null;
 };
 
+function renderSummary(item: NotificationRow): { title: string; href?: string } {
+  if (item.type === 'PROFILE_CHANGE_REQUEST_CREATED') {
+    return { title: 'Nueva solicitud de cambio de perfil', href: '/admin/profile-requests' };
+  }
+  if (item.type === 'BIDDER_APPLICATION_CREATED') {
+    const payload = item.payload as { auctionId?: string } | null;
+    const auctionId = payload?.auctionId;
+    return auctionId
+      ? {
+          title: `Nueva solicitud de postor (${auctionId})`,
+          href: `/admin/auctions/${auctionId}/bidders`,
+        }
+      : { title: 'Nueva solicitud de postor' };
+  }
+  return { title: item.type };
+}
+
 type ListResponse = {
   success: boolean;
   data: {
@@ -98,7 +115,19 @@ export default function AdminNotificationsPage() {
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="space-y-1">
-                    <p className="text-sm font-semibold text-foreground">{item.type}</p>
+                    {(() => {
+                      const summary = renderSummary(item);
+                      return summary.href ? (
+                        <a
+                          href={summary.href}
+                          className="text-sm font-semibold text-foreground underline"
+                        >
+                          {summary.title}
+                        </a>
+                      ) : (
+                        <p className="text-sm font-semibold text-foreground">{summary.title}</p>
+                      );
+                    })()}
                     <p className="text-xs text-muted-foreground">
                       {new Date(item.sentAt).toLocaleString('es-CL')}
                     </p>
@@ -120,4 +149,3 @@ export default function AdminNotificationsPage() {
     </main>
   );
 }
-

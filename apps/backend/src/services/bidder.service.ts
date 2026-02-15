@@ -46,13 +46,37 @@ export async function applyToBid(userId: string, auctionId: string) {
   });
   const paddleNumber = (maxPaddle._max.paddleNumber ?? 0) + 1;
 
-  return prisma.bidder.create({
-    data: {
-      userId,
-      auctionId,
-      paddleNumber,
-      status: BidderStatus.PENDING,
-    },
+  return prisma.$transaction(async (tx) => {
+    const created = await tx.bidder.create({
+      data: {
+        userId,
+        auctionId,
+        paddleNumber,
+        status: BidderStatus.PENDING,
+      },
+    });
+
+    // Minimal admin notification (per-user). Tenancy will refine recipients later.
+    const admins = await tx.user.findMany({
+      where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
+      select: { id: true },
+    });
+    if (admins.length > 0) {
+      await tx.notification.createMany({
+        data: admins.map((admin) => ({
+          userId: admin.id,
+          type: 'BIDDER_APPLICATION_CREATED',
+          payload: {
+            auctionId,
+            bidderId: created.id,
+            requesterUserId: userId,
+            paddleNumber,
+          } as unknown as Prisma.InputJsonValue,
+        })),
+      });
+    }
+
+    return created;
   });
 }
 
