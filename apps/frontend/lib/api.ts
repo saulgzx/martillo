@@ -81,7 +81,19 @@ apiClient.interceptors.response.use(
       | (typeof error.config & { _retry?: boolean })
       | undefined;
 
+    const url = String(originalRequest?.url ?? '');
+    const isAuthEndpoint =
+      url.includes('/api/auth/login') ||
+      url.includes('/api/auth/register') ||
+      url.includes('/api/auth/refresh') ||
+      url.includes('/api/auth/logout');
+
     if (!authConfig || status !== 401 || !originalRequest || originalRequest._retry) {
+      return Promise.reject(error);
+    }
+
+    // Never attempt refresh-loop on auth endpoints.
+    if (isAuthEndpoint) {
       return Promise.reject(error);
     }
 
