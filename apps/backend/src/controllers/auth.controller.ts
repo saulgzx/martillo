@@ -29,7 +29,7 @@ const loginSchema = z.object({
 
 type AuthCookieOptions = {
   httpOnly: true;
-  sameSite: 'strict' | 'none';
+  sameSite: 'strict' | 'lax' | 'none';
   secure: boolean;
   path: '/';
   maxAge: number;
@@ -39,7 +39,9 @@ function getRefreshCookieOptions(): AuthCookieOptions {
   const isProduction = env.NODE_ENV === 'production';
   return {
     httpOnly: true,
-    sameSite: isProduction ? 'none' : 'strict',
+    // In local dev we need cross-port XHR to work reliably (localhost:3000 -> localhost:4000).
+    // SameSite=Lax keeps CSRF posture reasonable while allowing dev workflows.
+    sameSite: isProduction ? 'none' : 'lax',
     secure: isProduction,
     path: '/',
     maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -198,7 +200,7 @@ export async function logout(req: Request, res: Response, next: NextFunction): P
 
     res.clearCookie('refreshToken', {
       path: '/',
-      sameSite: env.NODE_ENV === 'production' ? 'none' : 'strict',
+      sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
       secure: env.NODE_ENV === 'production',
     });
     res.status(204).send();

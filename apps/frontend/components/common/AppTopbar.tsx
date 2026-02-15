@@ -15,6 +15,7 @@ export function AppTopbar() {
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const logout = useAuthStore((state) => state.logout);
+  const refreshToken = useAuthStore((state) => state.refreshToken);
   const [hasAuthCookie, setHasAuthCookie] = useState(false);
   const [cookieRole, setCookieRole] = useState<UserRole | null>(null);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -33,6 +34,12 @@ export function AppTopbar() {
     }
     setCookieRole(null);
   }, []);
+
+  useEffect(() => {
+    if (!hasAuthCookie || isAuthenticated) return;
+    // Restore access token in memory after reload using the httpOnly refresh cookie.
+    void refreshToken();
+  }, [hasAuthCookie, isAuthenticated, refreshToken]);
 
   useEffect(() => {
     function onPointerDown(event: MouseEvent) {
