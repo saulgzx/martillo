@@ -107,6 +107,12 @@ const useAuthStore = create<AuthState>((set, get) => ({
       );
 
       const accessToken = response.data.data.accessToken;
+      // Ensure subsequent requests (ex: /api/auth/me) include the refreshed token.
+      set({
+        accessToken,
+        isAuthenticated: true,
+      });
+
       let user = get().user;
       if (!user) {
         const meResponse = await apiClient.get<{ success: boolean; data: UserPublic }>(

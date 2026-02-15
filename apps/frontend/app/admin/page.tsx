@@ -14,12 +14,12 @@ const adminModules = [
   {
     href: '/admin/auctions',
     title: 'Postores',
-    description: 'Desde remates, ingresar al modulo de postores por cada subasta.',
+    description: 'Desde Remates, ingresar al modulo de postores por cada subasta.',
   },
   {
     href: '/admin/auctions',
     title: 'Control en vivo',
-    description: 'Desde remates, abrir control en vivo por subasta.',
+    description: 'Desde Remates, abrir control en vivo por subasta.',
   },
 ];
 
@@ -29,7 +29,7 @@ export default function AdminHomePage() {
       <section className="rounded-xl border border-border bg-background p-6 shadow-sm">
         <h1 className="text-2xl font-semibold text-foreground">Panel administrativo</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Acceso central para pruebas funcionales y operación de la plataforma.
+          Acceso central para operacion y pruebas funcionales de la plataforma.
         </p>
       </section>
 

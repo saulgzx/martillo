@@ -13,6 +13,12 @@ enum Role {
   USER
 }
 
+enum ProfileChangeStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum UserStatus {
   ACTIVE
   INACTIVE
@@ -85,6 +91,27 @@ model User {
   notifications          Notification[]
   blacklistEntries       BlackList[]    @relation("BlacklistedUser")
   createdBlacklist       BlackList[]    @relation("BlacklistActor")
+  profileChangeRequests  ProfileChangeRequest[] @relation("ProfileChangeUser")
+  reviewedProfileChangeRequests ProfileChangeRequest[] @relation("ProfileChangeReviewer")
+}
+
+model ProfileChangeRequest {
+  id               String              @id @default(cuid())
+  userId           String
+  requestedEmail   String?
+  requestedFullName String?
+  requestedPhone   String?
+  status           ProfileChangeStatus @default(PENDING)
+  rejectionReason  String?
+  reviewedById     String?
+  reviewedAt       DateTime?
+  createdAt        DateTime            @default(now())
+
+  user             User                @relation("ProfileChangeUser", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy       User?               @relation("ProfileChangeReviewer", fields: [reviewedById], references: [id])
+
+  @@index([status, createdAt])
+  @@index([userId, status])
 }
 
 model Auction {

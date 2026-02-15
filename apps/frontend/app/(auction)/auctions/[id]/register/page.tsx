@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ApplicationStepper } from '@/components/bidder/ApplicationStepper';
 import { DocumentUploader } from '@/components/bidder/DocumentUploader';
@@ -12,17 +13,50 @@ export default function AuctionRegistrationPage() {
   const { id: auctionId } = useParams<{ id: string }>();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const refreshToken = useAuthStore((state) => state.refreshToken);
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [identityFile, setIdentityFile] = useState<File | null>(null);
   const [addressFile, setAddressFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function ensureUserLoaded() {
+      if (user) return;
+      setLoadingUser(true);
+      try {
+        await refreshToken();
+      } finally {
+        if (!cancelled) setLoadingUser(false);
+      }
+    }
+
+    void ensureUserLoaded();
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshToken, user]);
+
   const apply = async () => {
+    if (!user) {
+      setLoading(true);
+      try {
+        const token = await refreshToken();
+        if (!token) {
+          router.push('/login');
+          return;
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
     if (!acceptTerms) {
-      setError('Debes aceptar terminos para continuar');
+      setError('Debes aceptar términos para continuar.');
       return;
     }
     setLoading(true);
@@ -93,16 +127,33 @@ export default function AuctionRegistrationPage() {
             <p>Email: {user?.email ?? '--'}</p>
             <p>Telefono: {user?.phone ?? '--'}</p>
           </div>
+          {!user && !loadingUser ? (
+            <div className="rounded-md bg-amber-50 px-4 py-2 text-sm text-amber-900">
+              Tu sesión no está disponible. Inicia sesión nuevamente para continuar.
+              <div className="mt-2">
+                <Button variant="outline" onClick={() => router.push('/login')}>
+                  Ir a iniciar sesión
+                </Button>
+              </div>
+            </div>
+          ) : null}
+          <p className="text-xs text-muted-foreground">
+            Para solicitar cambios en tus datos, ve a{' '}
+            <Link className="underline underline-offset-2" href="/profile">
+              Mi cuenta
+            </Link>
+            . Los cambios deben ser aprobados por el administrador.
+          </p>
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
               checked={acceptTerms}
               onChange={(event) => setAcceptTerms(event.target.checked)}
             />
-            Acepto terminos y condiciones del remate.
+            Acepto términos y condiciones del remate.
           </label>
-          <Button onClick={apply} disabled={loading}>
-            {loading ? 'Enviando...' : 'Continuar'}
+          <Button onClick={apply} disabled={loading || loadingUser || !acceptTerms || !user}>
+            {loading || loadingUser ? 'Cargando...' : 'Continuar'}
           </Button>
         </section>
       ) : null}

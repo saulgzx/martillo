@@ -33,6 +33,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(homeUrl);
   }
 
+  if (pathname.startsWith('/dashboard') && adminRoles.has(role ?? '')) {
+    return NextResponse.redirect(new URL('/admin', request.url));
+  }
+
+  if (pathname.startsWith('/profile') && adminRoles.has(role ?? '')) {
+    return NextResponse.redirect(new URL('/admin', request.url));
+  }
+
   const isAdminRoute = pathname.startsWith('/admin');
   if (isAdminRoute && !adminRoles.has(role ?? '')) {
     const homeUrl = new URL('/dashboard', request.url);

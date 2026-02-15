@@ -38,3 +38,4 @@ export interface ApiResponse<T> {
 }
 
 export * from './auth.types';
+export * from './profile.types';

@@ -4,6 +4,7 @@ Project: `adaptable-inspiration`
 Service: `just-courtesy` (backend)
 
 ## Verificados como presentes
+
 - `DATABASE_URL`
 - `REDIS_URL`
 - `JWT_PRIVATE_KEY`
@@ -17,11 +18,13 @@ Service: `just-courtesy` (backend)
 - `ENCRYPTION_KEY`
 
 ## Faltantes o no confirmados en backend
+
 - `FLOW_API_KEY` (no visible en variables del servicio)
 - `FLOW_SECRET_KEY` (no visible en variables del servicio)
 - `SENTRY_DSN` (no visible en variables del servicio)
 
 ## Notas
+
 - `REDIS_URL` fue corregida en esta iteración porque estaba malformada (duplicada).
 - Dominio backend activo verificado: `https://martillo.up.railway.app`.
 - Para cerrar el checklist de producción completo, falta verificar variables en Vercel desde dashboard:

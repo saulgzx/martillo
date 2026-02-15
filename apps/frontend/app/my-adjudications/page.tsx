@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api';
+import { AppTopbar } from '@/components/common/AppTopbar';
 
 type Row = {
   id: string;
@@ -25,33 +26,41 @@ const money = (value: number) =>
 export default function MyAdjudicationsPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     apiClient
       .get<{ success: boolean; data: Row[] }>('/api/adjudications/my')
       .then((response) => setRows(response.data.data))
+      .catch(() => {
+        setError('No se pudieron cargar tus adjudicaciones.');
+        setRows([]);
+      })
       .finally(() => setLoading(false));
   }, []);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-6 py-10">
+    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 px-6 py-8">
+      <AppTopbar />
+
       <header>
         <h1 className="text-2xl font-semibold">Mis Adjudicaciones</h1>
       </header>
 
       <div className="space-y-3">
         {loading ? <p className="text-sm text-muted-foreground">Cargando...</p> : null}
-        {!loading && rows.length === 0 ? (
+        {!loading && error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {!loading && !error && rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">No tienes adjudicaciones.</p>
         ) : null}
         {rows.map((row) => (
-          <article key={row.id} className="rounded-lg border border-border p-4">
+          <article key={row.id} className="rounded-lg border border-border bg-background p-4">
             <h2 className="font-semibold">{row.lot.title}</h2>
             <p className="text-sm text-muted-foreground">
               Fecha: {new Date(row.adjudicatedAt).toLocaleString('es-CL')}
             </p>
             {row.payment ? (
-              <div className="mt-2 flex items-center gap-4 text-sm">
+              <div className="mt-2 flex flex-wrap items-center gap-4 text-sm">
                 <span>Estado: {row.payment.status}</span>
                 <span>Total: {money(Number(row.payment.total))}</span>
                 <Link href={`/payments/${row.payment.id}`} className="underline">

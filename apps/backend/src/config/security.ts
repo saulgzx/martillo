@@ -1,37 +1,50 @@
-import type { Express, Request } from 'express';
+import type { Express, Request, RequestHandler, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator, type Options } from 'express-rate-limit';
 import { env } from './env';
 import { logger } from '../utils/logger';
 
-const generalRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+const isProduction = env.NODE_ENV === 'production';
 
-export const authLoginRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+function devBypass(): RequestHandler {
+  return (_req, _res, next) => next();
+}
 
-export const authRegisterRateLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 3,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+function tooManyRequestsHandler(): NonNullable<Options['handler']> {
+  return (_req: Request, res: Response) => {
+    res.status(429).json({ success: false, message: 'Too many requests, please try again later.' });
+  };
+}
+
+export const authLoginRateLimiter = isProduction
+  ? rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 5,
+      standardHeaders: true,
+      legacyHeaders: false,
+      keyGenerator: (req) => ipKeyGenerator(req.ip ?? '127.0.0.1'),
+      handler: tooManyRequestsHandler(),
+    })
+  : devBypass();
+
+export const authRegisterRateLimiter = isProduction
+  ? rateLimit({
+      windowMs: 60 * 60 * 1000,
+      max: 3,
+      standardHeaders: true,
+      legacyHeaders: false,
+      keyGenerator: (req) => ipKeyGenerator(req.ip ?? '127.0.0.1'),
+      handler: tooManyRequestsHandler(),
+    })
+  : devBypass();
 
 export const lotMediaRateLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req: Request) => req.user?.id ?? req.ip ?? 'anonymous',
+  keyGenerator: (req: Request) => req.user?.id ?? ipKeyGenerator(req.ip ?? '127.0.0.1'),
 });
 
 function normalizeOrigin(origin: string): string {
@@ -98,5 +111,15 @@ export function applySecurityMiddleware(app: Express): void {
     }),
   );
 
-  app.use(generalRateLimiter);
+  // Keep global throttling in all envs, but avoid blocking dev iteration by using high ceiling.
+  app.use(
+    rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: isProduction ? 100 : 10_000,
+      standardHeaders: true,
+      legacyHeaders: false,
+      keyGenerator: (req) => ipKeyGenerator(req.ip ?? '127.0.0.1'),
+      handler: tooManyRequestsHandler(),
+    }),
+  );
 }

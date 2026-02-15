@@ -11,6 +11,8 @@ const config: Config = {
         mono: ['Geist Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       colors: {
+        navy: '#1A3C5E',
+        charcoal: '#64748B',
         brand: {
           navy: '#1A3C5E',
           gray: '#64748B',

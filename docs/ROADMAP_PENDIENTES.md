@@ -6,8 +6,6 @@
 > ?ltima actualizaci?n: 2026-02-14 - Hotfix deploy Railway (`apps/backend/railway.json`: `buildCommand` -> `npm run build`)
 > 2026-02-14 (hotfix runtime): backend arranca con logs de boot, `/health` expuesto antes de middleware y manejo defensivo de errores de arranque/socket en `apps/backend/src/index.ts`.
 
-
-
 ## Bitacora de ejecucion automatica
 
 - 2026-02-14 (iteracion actual):
@@ -90,16 +88,16 @@
 
 ## Estado por Semana
 
-| Semana | Tema | Estado | Completado |
-|--------|------|--------|------------|
-| S1 | Setup Base + CI/CD + Seguridad | COMPLETO | 100% |
-| S2 | Base de Datos + Auth | âœ… Completo | 95% |
-| S3 | CRUD Remates + CatÃ¡logo | âš ï¸ Parcial | 75% |
-| S4 | Subastas en Tiempo Real | PARCIAL | 65% |
-| S5 | Registro de Postores | âŒ Pendiente | 0% |
-| S6 | Pagos + Email | âŒ Pendiente | 0% |
-| S7 | AuditorÃ­a + QA | âŒ Pendiente | 0% |
-| S8 | Testing E2E + Deploy | âŒ Pendiente | 0% |
+| Semana | Tema                           | Estado        | Completado |
+| ------ | ------------------------------ | ------------- | ---------- |
+| S1     | Setup Base + CI/CD + Seguridad | COMPLETO      | 100%       |
+| S2     | Base de Datos + Auth           | âœ… Completo  | 95%        |
+| S3     | CRUD Remates + CatÃ¡logo       | âš ï¸ Parcial | 75%        |
+| S4     | Subastas en Tiempo Real        | PARCIAL       | 65%        |
+| S5     | Registro de Postores           | âŒ Pendiente  | 0%         |
+| S6     | Pagos + Email                  | âŒ Pendiente  | 0%         |
+| S7     | AuditorÃ­a + QA                | âŒ Pendiente  | 0%         |
+| S8     | Testing E2E + Deploy           | âŒ Pendiente  | 0%         |
 
 ---
 
@@ -110,10 +108,12 @@ Estado Fase 1: DONE (validado en este ciclo)
 ### 1.1 Completar CI/CD (Prompt 1.2)
 
 **Archivos a crear/modificar:**
+
 - `.github/workflows/ci.yml` â€” agregar jobs faltantes
 - `.github/workflows/pr-check.yml` â€” nuevo
 
 **Tareas:**
+
 - [x] Agregar job `test` al CI (Jest en backend, aunque estÃ© vacÃ­o el runner debe existir)
 - [x] Agregar job `security` con `npm audit --audit-level=high`
 - [x] Agregar job `deploy` condicional (solo en push a `main`, depende de los anteriores):
@@ -131,10 +131,12 @@ Estado Fase 1: DONE (validado en este ciclo)
 ### 1.2 Completar Seguridad Base (Prompt 1.3)
 
 **Archivos a crear:**
+
 - `apps/backend/scripts/generate-keys.ts`
 - `apps/backend/src/utils/encryption.ts`
 
 **Tareas:**
+
 - [x] Crear script `generate-keys.ts` que genere par RSA 2048 bits con `crypto` nativo
 - [x] Crear `utils/encryption.ts` con `encryptPII()` y `decryptPII()` usando AES-256-GCM
 - [x] Agregar a `.env.example` del backend las variables faltantes:
@@ -149,12 +151,14 @@ Estado Fase 1: DONE (validado en este ciclo)
 ### 1.3 Conectar Frontend a API Real (Prompt 3.2 â€” pendiente)
 
 **Archivos a modificar:**
+
 - `apps/frontend/app/page.tsx` â€” reemplazar mock por fetch a API
 - `apps/frontend/app/auctions/[id]/page.tsx` â€” fetch real
 - `apps/frontend/app/admin/auctions/page.tsx` â€” conectar a API
 - `apps/frontend/app/admin/auctions/[id]/lots/page.tsx` â€” conectar a API
 
 **Tareas:**
+
 - [x] Reemplazar `mockAuctions` en home por fetch a `GET /api/auctions/public`
 - [x] Implementar `generateStaticParams` con ISR (revalidate 60s) en `/auctions/[id]`
 - [x] Conectar tabla admin de remates a `GET /api/auctions` con paginaciÃ³n
@@ -168,9 +172,11 @@ Estado Fase 1: DONE (validado en este ciclo)
 ### 1.4 Completar Motor de Subastas â€” Backend (Prompt 4.1 â€” pendiente)
 
 **Archivos a modificar:**
+
 - `apps/backend/src/socket/auction.room.ts` â€” agregar eventos del rematador
 
 **Tareas:**
+
 - [x] Implementar evento `auction:auctioneer:adjudicate`:
   - Solo rol AUCTIONEER
   - Crear registro Adjudication en DB
@@ -201,6 +207,7 @@ Estado Fase 1: DONE (validado en este ciclo)
 ### 1.5 Sala de Subasta + Panel Rematador â€” Frontend (Prompt 4.2)
 
 **Archivos a crear:**
+
 - `apps/frontend/hooks/useAuctionSocket.ts`
 - `apps/frontend/app/(auction)/auctions/[id]/live/page.tsx`
 - `apps/frontend/app/admin/auctions/[id]/control/page.tsx`
@@ -213,11 +220,13 @@ Estado Fase 1: DONE (validado en este ciclo)
 - `apps/frontend/components/auctioneer/LotQueue.tsx`
 
 **Dependencias a instalar:**
+
 ```bash
 npm install socket.io-client framer-motion -w apps/frontend
 ```
 
 **Tareas:**
+
 - [x] Crear hook `useAuctionSocket`:
   - Conectar a namespace `/auction` con accessToken
   - Manejo de reconexiÃ³n automÃ¡tica
@@ -249,6 +258,7 @@ npm install socket.io-client framer-motion -w apps/frontend
 ### 2.1 Backend Registro y VerificaciÃ³n de Postores (Prompt 5.1)
 
 **Modelos a agregar al schema Prisma:**
+
 ```prisma
 model BidderDocument {
   id           String   @id @default(cuid())
@@ -273,6 +283,7 @@ enum DocumentType { IDENTITY ADDRESS }
 ```
 
 **Archivos a crear:**
+
 - `apps/backend/src/services/bidder.service.ts`
 - `apps/backend/src/services/document.service.ts`
 - `apps/backend/src/services/blacklist.service.ts`
@@ -280,6 +291,7 @@ enum DocumentType { IDENTITY ADDRESS }
 - `apps/backend/src/routes/bidder.routes.ts`
 
 **Tareas:**
+
 - [ ] Agregar modelos `BidderDocument`, `BlackList`, `Consignor`, `LotConsignor`, `Notification` al schema
 - [ ] Ejecutar migraciÃ³n: `npx prisma migrate dev --name add-bidder-documents-blacklist`
 - [ ] Implementar `bidder.service.ts`:
@@ -313,6 +325,7 @@ enum DocumentType { IDENTITY ADDRESS }
 ### 2.2 Frontend Flujo de Postores (Prompt 5.2)
 
 **Archivos a crear:**
+
 - `apps/frontend/app/(auction)/auctions/[id]/register/page.tsx`
 - `apps/frontend/app/(auth)/profile/page.tsx`
 - `apps/frontend/app/admin/auctions/[id]/bidders/page.tsx`
@@ -323,6 +336,7 @@ enum DocumentType { IDENTITY ADDRESS }
 - `apps/frontend/components/admin/DocumentViewer.tsx`
 
 **Tareas:**
+
 - [ ] Crear flujo de aplicaciÃ³n 3 pasos:
   - Paso 1: Confirmar datos personales + aceptar tÃ©rminos
   - Paso 2: Upload cÃ©dula + comprobante domicilio
@@ -349,16 +363,19 @@ enum DocumentType { IDENTITY ADDRESS }
 ### 3.1 Sistema de Pagos (Prompt 6.1)
 
 **Dependencias backend:**
+
 ```bash
 npm install pdfkit bull -w apps/backend
 ```
 
 **Archivos a crear:**
+
 - `apps/backend/src/services/payment.service.ts`
 - `apps/backend/src/integrations/flow.integration.ts`
 - `apps/backend/src/routes/payment.routes.ts`
 
 **Tareas:**
+
 - [ ] Implementar `payment.service.ts`:
   - `createPaymentOrder(adjudicationId)` â€” calcular comisiÃ³n + IVA + crear orden Flow
   - `handleFlowWebhook(payload, signature)` â€” validar firma, actualizar Payment
@@ -385,11 +402,13 @@ npm install pdfkit bull -w apps/backend
 ### 3.2 Notificaciones Email (Prompt 6.2)
 
 **Dependencia:**
+
 ```bash
 npm install resend -w apps/backend
 ```
 
 **Archivos a crear:**
+
 - `apps/backend/src/services/email.service.ts`
 - `apps/backend/src/templates/welcome.html`
 - `apps/backend/src/templates/bidder-approved.html`
@@ -401,6 +420,7 @@ npm install resend -w apps/backend
 - `apps/backend/src/templates/payment-overdue.html`
 
 **Tareas:**
+
 - [ ] Reemplazar mock de NotificationService con Resend real
 - [ ] Crear 8 plantillas HTML responsive con branding Martillo
 - [ ] Crear mÃ©todos tipados: `sendWelcome()`, `sendBidderApproved()`, etc.
@@ -419,12 +439,14 @@ npm install resend -w apps/backend
 ### 3.3 Frontend Pagos (Prompt 6.3)
 
 **Archivos a crear:**
+
 - `apps/frontend/app/(auth)/payments/[id]/page.tsx`
 - `apps/frontend/app/(auth)/payments/return/page.tsx`
 - `apps/frontend/app/(auth)/my-adjudications/page.tsx`
 - `apps/frontend/app/admin/payments/page.tsx`
 
 **Tareas:**
+
 - [ ] PÃ¡gina de pago: desglose (adjudicaciÃ³n + comisiÃ³n + IVA = total), countdown, botÃ³n Flow
 - [ ] PÃ¡gina retorno Flow: consultar estado real al backend, animaciÃ³n Ã©xito/error
 - [ ] Mis adjudicaciones: lista de lotes ganados, estado pago, descargar comprobante
@@ -439,14 +461,17 @@ npm install resend -w apps/backend
 ### 4.1 AuditorÃ­a de Seguridad Backend (Prompt 7.1)
 
 **Dependencia:**
+
 ```bash
 npm install winston -w apps/backend
 ```
 
 **Archivos a crear:**
+
 - `apps/backend/src/utils/logger.ts`
 
 **Tareas:**
+
 - [ ] Revisar TODOS los endpoints: Â¿tienen authenticate/authorize correcto?
 - [ ] Verificar ownership en endpoints (postor no puede ver datos de otro)
 - [ ] Buscar `$queryRaw` o `$executeRaw` sin parÃ¡metros seguros
@@ -469,14 +494,17 @@ npm install winston -w apps/backend
 ### 4.2 AuditorÃ­a Frontend + Pruebas de Carga (Prompt 7.2)
 
 **Dependencia:**
+
 ```bash
 npm install dompurify @types/dompurify -w apps/frontend
 ```
 
 **Archivos a crear:**
+
 - `apps/backend/scripts/load-test-auction.ts`
 
 **Tareas:**
+
 - [x] Buscar y sanitizar cualquier `dangerouslySetInnerHTML` con DOMPurify (no aplica por ahora: no hay usos en frontend)
 - [x] Verificar que accessToken NO estÃ© en localStorage/sessionStorage
 - [x] Crear error boundary global para React
@@ -485,8 +513,8 @@ npm install dompurify @types/dompurify -w apps/frontend
   headers: [
     { key: 'X-Frame-Options', value: 'DENY' },
     { key: 'X-Content-Type-Options', value: 'nosniff' },
-    { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' }
-  ]
+    { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  ];
   ```
 - [x] Crear script de prueba de carga (esqueleto):
   - 50 postores simultÃ¡neos en una sala
@@ -505,6 +533,7 @@ npm install dompurify @types/dompurify -w apps/frontend
 ### 5.1 Testing E2E + Monitoreo (Prompt 8.1)
 
 **Dependencias:**
+
 ```bash
 npx playwright install # en frontend
 npm install @sentry/nextjs -w apps/frontend
@@ -513,12 +542,14 @@ npm install swagger-ui-express swagger-jsdoc -w apps/backend
 ```
 
 **Archivos a crear:**
+
 - `apps/frontend/e2e/auth.spec.ts`
 - `apps/frontend/e2e/catalog.spec.ts`
 - `apps/frontend/e2e/bidder-flow.spec.ts`
 - `apps/frontend/e2e/auction.spec.ts`
 
 **Tareas:**
+
 - [x] Configurar Playwright en frontend (esqueleto base)
 - [ ] Tests E2E:
   - auth: registro, login correcto, login incorrecto, refresh automÃ¡tico
@@ -553,9 +584,11 @@ npm install swagger-ui-express swagger-jsdoc -w apps/backend
 ### 5.2 Deploy ProducciÃ³n (Prompt 8.2)
 
 **Archivos a crear:**
+
 - `apps/backend/scripts/smoke-test.ts`
 
 **Tareas:**
+
 - [x] Verificar TODAS las env vars en Railway producciÃ³n
 - [ ] Verificar TODAS las env vars en Vercel producciÃ³n
 - [ ] Merge develop â†’ main, verificar pipeline verde
@@ -699,16 +732,16 @@ enum LiquidationStatus { PENDING PAID }
 ## Dependencias Pendientes por Instalar
 
 **Backend:**
+
 ```bash
 npm install resend pdfkit bull winston swagger-ui-express swagger-jsdoc @sentry/node -w apps/backend
 npm install @types/pdfkit -D -w apps/backend
 ```
 
 **Frontend:**
+
 ```bash
 npm install socket.io-client framer-motion @dnd-kit/core @dnd-kit/sortable dompurify @sentry/nextjs recharts -w apps/frontend
 npm install @types/dompurify -D -w apps/frontend
 npx playwright install
 ```
-
-

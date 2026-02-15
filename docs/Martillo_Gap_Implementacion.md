@@ -2,6 +2,7 @@
 
 Fecha de auditoria: 2026-02-14
 Base de comparacion:
+
 - Guia funcional: `c:\Users\Alexis\Downloads\Martillo\Martillo_Prompts_Desarrollo.md`
 - Estado real del repo: rama local actual
 
@@ -96,7 +97,7 @@ Brecha principal: semanas 4.2 a 8.x casi completas pendientes.
 
 ## P4 - Tiempo real (subastas)
 
-### Backend (apps/backend/src/socket/*)
+### Backend (apps/backend/src/socket/\*)
 
 - [ ] Implementar eventos de rematador:
   - `auction:auctioneer:adjudicate`

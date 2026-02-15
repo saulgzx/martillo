@@ -69,11 +69,14 @@ function createClient(index) {
     metrics.connectionErrors += 1;
   });
 
-  const timer = setInterval(() => {
-    const amount = Number(process.env.LOAD_TEST_BID_AMOUNT || 1000) + index;
-    metrics.emittedBids += 1;
-    socket.emit('bid:place', { auctionId: AUCTION_ID, lotId: LOT_ID, amount });
-  }, Math.max(250, BID_INTERVAL_MS + randomDelay()));
+  const timer = setInterval(
+    () => {
+      const amount = Number(process.env.LOAD_TEST_BID_AMOUNT || 1000) + index;
+      metrics.emittedBids += 1;
+      socket.emit('bid:place', { auctionId: AUCTION_ID, lotId: LOT_ID, amount });
+    },
+    Math.max(250, BID_INTERVAL_MS + randomDelay()),
+  );
 
   sockets.push(socket);
   timers.push(timer);
