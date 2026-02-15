@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import { LotStatus } from '@prisma/client';
 import { asyncHandler } from '../utils/async-handler';
 import { authorize, authenticate } from '../middleware/auth.middleware';
 import { upload } from '../middleware/upload.middleware';
@@ -11,6 +12,7 @@ import {
   createLot,
   deleteLot,
   getLotsByAuction,
+  markLotStatus,
   removeMedia,
   reorderLots,
   updateLot,
@@ -132,6 +134,28 @@ router.delete(
   asyncHandler(async (req, res) => {
     await removeMedia(String(req.params.mediaId));
     res.status(204).send();
+  }),
+);
+
+router.post(
+  '/lots/:lotId/publish',
+  authenticate,
+  authorize('SUPERADMIN', 'ADMIN'),
+  asyncHandler(async (req, res) => {
+    const lotId = String(req.params.lotId);
+    const lot = await prisma.lot.findUnique({ where: { id: lotId }, select: { status: true } });
+    if (!lot) {
+      res.status(404).json({ success: false, message: 'Lot not found' });
+      return;
+    }
+
+    if (lot.status !== LotStatus.DRAFT) {
+      res.status(400).json({ success: false, message: 'Lot must be DRAFT to publish' });
+      return;
+    }
+
+    const data = await markLotStatus(lotId, LotStatus.PUBLISHED, req.user!.id);
+    res.json({ success: true, data });
   }),
 );
 

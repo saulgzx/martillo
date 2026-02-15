@@ -50,8 +50,10 @@ export default function AdminLotsPage() {
   const [auction, setAuction] = useState<Auction | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<Lot | null>(null);
 
   const canDeleteLots = auction?.status === 'DRAFT';
 
@@ -112,6 +114,7 @@ export default function AdminLotsPage() {
       }
 
       setShowForm(false);
+      setEditing(null);
       await load();
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
@@ -122,6 +125,67 @@ export default function AdminLotsPage() {
       else setError('No se pudo guardar el lote.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleUpdateLot = async (
+    lotId: string,
+    values: {
+      title: string;
+      description: string;
+      basePrice: string;
+      minIncrement: string;
+      category: string;
+      files: File[];
+    },
+  ) => {
+    setSaving(true);
+    setError(null);
+    try {
+      const payload = {
+        title: values.title,
+        description: values.description || undefined,
+        basePrice: values.basePrice,
+        minIncrement: values.minIncrement,
+        category: values.category || undefined,
+      };
+
+      await apiClient.put(`/api/auctions/${auctionId}/lots/${lotId}`, payload);
+
+      if (values.files.length > 0) {
+        const fd = new FormData();
+        values.files.forEach((file) => fd.append('files', file));
+        await apiClient.post(`/api/lots/${lotId}/media`, fd);
+      }
+
+      setShowForm(false);
+      setEditing(null);
+      await load();
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 400) setError('Revisa los datos del lote.');
+      else if (status === 401) setError('Tu sesión expiró. Inicia sesión nuevamente.');
+      else if (status === 403) setError('No tienes permisos para editar lotes.');
+      else setError('No se pudo actualizar el lote.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePublishLot = async (lotId: string) => {
+    setPublishing(lotId);
+    setError(null);
+    try {
+      await apiClient.post(`/api/lots/${lotId}/publish`);
+      await load();
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 400) setError('El lote debe estar en DRAFT para publicarse.');
+      else if (status === 401) setError('Tu sesión expiró. Inicia sesión nuevamente.');
+      else if (status === 403) setError('No tienes permisos para publicar lotes.');
+      else setError('No se pudo publicar el lote.');
+    } finally {
+      setPublishing(null);
     }
   };
 
@@ -162,7 +226,18 @@ export default function AdminLotsPage() {
             <span className="font-medium">{auction.status}</span>
           </p>
         </div>
-        <Button onClick={() => setShowForm((value) => !value)} className="self-start md:self-auto">
+        <Button
+          onClick={() => {
+            if (showForm) {
+              setShowForm(false);
+              setEditing(null);
+              return;
+            }
+            setEditing(null);
+            setShowForm(true);
+          }}
+          className="self-start md:self-auto"
+        >
           {showForm ? 'Cerrar' : 'Agregar lote'}
         </Button>
       </header>
@@ -173,7 +248,26 @@ export default function AdminLotsPage() {
 
       {showForm ? (
         <section className="rounded-lg border border-border p-4">
-          <LotForm onSubmit={handleCreateLot} submitting={saving} />
+          <LotForm
+            key={editing?.id ?? 'create'}
+            initialValues={
+              editing
+                ? {
+                    title: editing.title,
+                    description: editing.description ?? '',
+                    basePrice: String(editing.basePrice ?? ''),
+                    minIncrement: String(editing.minIncrement ?? ''),
+                    category: editing.category ?? '',
+                  }
+                : undefined
+            }
+            onSubmit={(values) => {
+              if (editing) return handleUpdateLot(editing.id, values);
+              return handleCreateLot(values);
+            }}
+            submitting={saving}
+            submitLabel={editing ? 'Guardar cambios' : 'Guardar lote'}
+          />
           <p className="mt-3 text-xs text-muted-foreground">
             Nota: la eliminación de lotes solo está habilitada cuando el remate está en estado
             DRAFT.
@@ -234,19 +328,42 @@ export default function AdminLotsPage() {
 
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">{lot.category ?? ''}</span>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => void handleDeleteLot(lot.id)}
-                      disabled={!canDeleteLots}
-                      title={
-                        canDeleteLots
-                          ? 'Eliminar lote'
-                          : 'Solo puedes eliminar lotes cuando el remate está en DRAFT'
-                      }
-                    >
-                      Eliminar
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditing(lot);
+                          setShowForm(true);
+                        }}
+                      >
+                        Editar
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => void handlePublishLot(lot.id)}
+                        disabled={lot.status !== 'DRAFT' || publishing === lot.id}
+                        title={
+                          lot.status === 'DRAFT' ? 'Publicar lote' : 'El lote no está en DRAFT'
+                        }
+                      >
+                        {publishing === lot.id ? 'Publicando...' : 'Publicar'}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => void handleDeleteLot(lot.id)}
+                        disabled={!canDeleteLots}
+                        title={
+                          canDeleteLots
+                            ? 'Eliminar lote'
+                            : 'Solo puedes eliminar lotes cuando el remate está en DRAFT'
+                        }
+                      >
+                        Eliminar
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>

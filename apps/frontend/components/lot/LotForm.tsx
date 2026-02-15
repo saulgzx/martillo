@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ImageUploader } from '@/components/ui/ImageUploader';
 
@@ -17,21 +17,36 @@ type LotFormProps = {
   onSubmit?: (values: LotFormValues) => void | Promise<void>;
   submitting?: boolean;
   submitLabel?: string;
+  initialValues?: Partial<Omit<LotFormValues, 'files'>> & { files?: File[] };
 };
 
 export function LotForm({
   onSubmit,
   submitting = false,
   submitLabel = 'Guardar lote',
+  initialValues,
 }: LotFormProps) {
   const [values, setValues] = useState<LotFormValues>({
-    title: '',
-    description: '',
-    basePrice: '',
-    minIncrement: '',
-    category: '',
-    files: [],
+    title: initialValues?.title ?? '',
+    description: initialValues?.description ?? '',
+    basePrice: initialValues?.basePrice ?? '',
+    minIncrement: initialValues?.minIncrement ?? '',
+    category: initialValues?.category ?? '',
+    files: initialValues?.files ?? [],
   });
+
+  useEffect(() => {
+    if (!initialValues) return;
+    setValues((prev) => ({
+      ...prev,
+      title: initialValues.title ?? '',
+      description: initialValues.description ?? '',
+      basePrice: initialValues.basePrice ?? '',
+      minIncrement: initialValues.minIncrement ?? '',
+      category: initialValues.category ?? '',
+      files: initialValues.files ?? [],
+    }));
+  }, [initialValues]);
 
   return (
     <form
