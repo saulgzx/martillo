@@ -12,19 +12,28 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <Link href="/admin" className="block rounded px-3 py-2 hover:bg-white/10">
             Inicio Admin
           </Link>
+          <Link href="/admin/users" className="block rounded px-3 py-2 hover:bg-white/10">
+            Usuarios
+          </Link>
           <Link href="/admin/auctions" className="block rounded px-3 py-2 hover:bg-white/10">
             Remates
           </Link>
           <Link href="/admin/payments" className="block rounded px-3 py-2 hover:bg-white/10">
             Pagos
           </Link>
-          <Link href="/admin" className="block rounded px-3 py-2 hover:bg-white/10">
-            Dashboard Admin
+          <Link
+            href="/admin/profile-requests"
+            className="block rounded px-3 py-2 hover:bg-white/10"
+          >
+            Solicitudes de perfil
+          </Link>
+          <Link href="/admin/notifications" className="block rounded px-3 py-2 hover:bg-white/10">
+            Notificaciones
           </Link>
           <div className="mt-4 border-t border-white/10 pt-4">
-            <p className="mb-2 px-3 text-xs uppercase text-white/50">Acceso rápido</p>
+            <p className="mb-2 px-3 text-xs uppercase text-white/50">Acceso rapido</p>
             <Link href="/" className="block rounded px-3 py-2 hover:bg-white/10">
-              Ver sitio público
+              Ver sitio publico
             </Link>
           </div>
         </nav>
@@ -38,3 +47,4 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     </main>
   );
 }
+

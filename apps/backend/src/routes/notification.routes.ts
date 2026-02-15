@@ -9,6 +9,10 @@ export const notificationRouter = Router();
 const listSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
+  unreadOnly: z
+    .union([z.literal('true'), z.literal('false')])
+    .optional()
+    .transform((val) => val === 'true'),
 });
 
 notificationRouter.get(
@@ -17,15 +21,37 @@ notificationRouter.get(
   authorize('ADMIN', 'SUPERADMIN'),
   asyncHandler(async (req, res) => {
     const parsed = listSchema.parse(req.query);
+    const where = {
+      userId: req.user!.id,
+      ...(parsed.unreadOnly ? { readAt: null } : {}),
+    } as const;
     const [total, data] = await prisma.$transaction([
-      prisma.notification.count({ where: { userId: req.user!.id } }),
+      prisma.notification.count({ where }),
       prisma.notification.findMany({
-        where: { userId: req.user!.id },
+        where,
         orderBy: { sentAt: 'desc' },
         skip: (parsed.page - 1) * parsed.limit,
         take: parsed.limit,
       }),
     ]);
-    res.json({ success: true, data: { total, page: parsed.page, data } });
+
+    const unreadTotal = await prisma.notification.count({
+      where: { userId: req.user!.id, readAt: null },
+    });
+
+    res.json({ success: true, data: { total, unreadTotal, page: parsed.page, data } });
+  }),
+);
+
+notificationRouter.post(
+  '/admin/notifications/read-all',
+  authenticate,
+  authorize('ADMIN', 'SUPERADMIN'),
+  asyncHandler(async (req, res) => {
+    await prisma.notification.updateMany({
+      where: { userId: req.user!.id, readAt: null },
+      data: { readAt: new Date() },
+    });
+    res.json({ success: true });
   }),
 );

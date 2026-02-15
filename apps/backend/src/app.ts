@@ -11,6 +11,7 @@ import { lotRouter } from './routes/lot.routes';
 import { paymentRouter } from './routes/payment.routes';
 import { profileRouter } from './routes/profile.routes';
 import { notificationRouter } from './routes/notification.routes';
+import { adminUsersRouter } from './routes/admin-users.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { env } from './config/env';
 
@@ -32,6 +33,7 @@ export function createApp(): Express {
   app.use('/api', paymentRouter);
   app.use('/api', profileRouter);
   app.use('/api', notificationRouter);
+  app.use('/api', adminUsersRouter);
 
   if (env.NODE_ENV !== 'production') {
     applySwagger(app);

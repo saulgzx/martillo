@@ -8,6 +8,7 @@ import { Logo } from '@/components/common/Logo';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/auth.store';
 import { isAdminRole } from '@/lib/auth-routing';
+import { apiClient } from '@/lib/api';
 
 export function AppTopbar() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export function AppTopbar() {
   const [cookieRole, setCookieRole] = useState<UserRole | null>(null);
   const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement | null>(null);
+  const [notifUnread, setNotifUnread] = useState<number>(0);
 
   useEffect(() => {
     setHasAuthCookie(document.cookie.includes('martillo_auth=1'));
@@ -47,6 +49,31 @@ export function AppTopbar() {
   const showAuthenticatedMenu = isAuthenticated || hasAuthCookie;
   const effectiveRole = user?.role ?? cookieRole;
   const accountLabel = useMemo(() => 'Mi cuenta', []);
+  const isAdmin = isAdminRole(effectiveRole);
+
+  useEffect(() => {
+    if (!showAuthenticatedMenu || !isAdmin) return;
+
+    let cancelled = false;
+    async function loadUnread() {
+      try {
+        const res = await apiClient.get<{
+          success: boolean;
+          data: { unreadTotal: number };
+        }>('/api/admin/notifications?limit=1&unreadOnly=true');
+        if (!cancelled) setNotifUnread(res.data.data.unreadTotal ?? 0);
+      } catch {
+        if (!cancelled) setNotifUnread(0);
+      }
+    }
+
+    void loadUnread();
+    const timer = window.setInterval(loadUnread, 15000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [isAdmin, showAuthenticatedMenu]);
 
   return (
     <header className="rounded-xl border border-border bg-background/80 px-4 py-3 shadow-sm backdrop-blur">
@@ -61,7 +88,7 @@ export function AppTopbar() {
           </Button>
           {showAuthenticatedMenu ? (
             <>
-              {isAdminRole(effectiveRole) ? (
+              {isAdmin ? (
                 <Button asChild size="sm">
                   <Link href="/admin">Panel Admin</Link>
                 </Button>
@@ -75,6 +102,18 @@ export function AppTopbar() {
                   </Button>
                 </>
               )}
+              {isAdmin ? (
+                <Button asChild size="sm" variant="outline">
+                  <Link href="/admin/notifications">
+                    Notificaciones
+                    {notifUnread > 0 ? (
+                      <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-xs font-semibold text-white">
+                        {notifUnread > 99 ? '99+' : notifUnread}
+                      </span>
+                    ) : null}
+                  </Link>
+                </Button>
+              ) : null}
               <div className="relative" ref={accountRef}>
                 <Button
                   size="sm"
@@ -102,7 +141,7 @@ export function AppTopbar() {
                     <div className="my-2 h-px w-full bg-border" />
 
                     <div className="flex flex-col gap-2">
-                      {!isAdminRole(effectiveRole) ? (
+                      {!isAdmin ? (
                         <Button
                           size="sm"
                           variant="outline"
