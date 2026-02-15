@@ -73,6 +73,16 @@ export function registerAuctionEvents(namespace: Namespace) {
           return;
         }
 
+        const rtStatus = await stateService.getAuctionStatus(auctionId);
+        if (rtStatus === 'PAUSED') {
+          socket.emit('bid:rejected', { reason: 'Auction is PAUSED' });
+          return;
+        }
+        if (rtStatus === 'FINISHED') {
+          socket.emit('bid:rejected', { reason: 'Auction is FINISHED' });
+          return;
+        }
+
         const lot = await prisma.lot.findUnique({ where: { id: lotId } });
         if (!lot || lot.status !== LotStatus.ACTIVE) {
           socket.emit('bid:rejected', { reason: 'Lot is not ACTIVE' });
@@ -248,6 +258,16 @@ export function registerAuctionEvents(namespace: Namespace) {
     socket.on('auction:auctioneer:next-lot', async ({ auctionId }: { auctionId: string }) => {
       if (!isAuctionOperator(socket.data.role)) {
         socket.emit('bid:rejected', { reason: 'Unauthorized' });
+        return;
+      }
+
+      const rtStatus = await stateService.getAuctionStatus(auctionId);
+      if (rtStatus === 'PAUSED') {
+        socket.emit('bid:rejected', { reason: 'Auction is PAUSED' });
+        return;
+      }
+      if (rtStatus === 'FINISHED') {
+        socket.emit('bid:rejected', { reason: 'Auction is FINISHED' });
         return;
       }
 

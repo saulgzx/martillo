@@ -85,3 +85,5 @@ Postores (admin): 2026-02-15 - Agregada pagina `Admin > Postores` (`/admin/bidde
 Dev UX (Node): 2026-02-15 - `scripts/check-node.js` ahora permite Node 24 local con warning (sin bloquear `npm run build`), manteniendo Node 20/22 como recomendados para compatibilidad con Next.js.
 
 Realtime control (admin): 2026-02-15 - Panel del Rematador (`/admin/auctions/:id/control`) ahora soporta `Saltar lote`, `Pausar/Reanudar` y `Finalizar remate` via Socket.io (`auction:auctioneer:*`), con confirmaciones y estado visual (pausado/finalizado). Commit: `a5a68f8`.
+
+Realtime guardrails: 2026-02-15 - `bid:place` y `auction:auctioneer:next-lot` ahora respetan el estado realtime en Redis (`PAUSED`/`FINISHED`) para evitar pujas/avance durante pausa o remate finalizado. Commit: (siguiente).
