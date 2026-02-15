@@ -19,7 +19,7 @@ async function main() {
     data: {
       email,
       passwordHash: 'backup-check',
-      role: 'BIDDER',
+      role: 'USER',
       fullName: 'Backup Check',
       rut: '00.000.000-0',
       phone,

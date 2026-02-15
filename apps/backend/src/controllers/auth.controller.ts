@@ -99,7 +99,7 @@ export async function register(req: Request, res: Response, next: NextFunction):
       data: {
         email,
         passwordHash,
-        role: Role.BIDDER,
+        role: Role.USER,
         fullName,
         rut: encryptPII(rut),
         phone,

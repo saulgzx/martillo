@@ -54,7 +54,7 @@ describe('AuthService', () => {
       refreshTokenTtlSeconds: 30,
     });
 
-    const { accessToken } = await service.generateTokens('user-2', 'BIDDER');
+    const { accessToken } = await service.generateTokens('user-2', 'USER');
     await new Promise((resolve) => setTimeout(resolve, 1200));
 
     const payload = service.verifyAccessToken(accessToken);

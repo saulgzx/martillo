@@ -77,6 +77,9 @@
   - Hotfix navegación auth frontend:
     - login/register ahora redirigen con `window.location.assign(...)` usando el rol retornado por API
     - evita quedarse en `/login` cuando la autenticación responde `success: true`
+  - Arquitectura de roles alineada con `Martillo_Roles_Arquitectura.md`:
+    - roles globales normalizados a `SUPERADMIN`, `ADMIN`, `USER`
+    - `ADMIN` opera panel de rematador; `USER` representa postor final
   - Auditoría de dependencias ejecutada:
     - `npm audit --audit-level=moderate` realizado.
     - Pendientes documentados en `docs/SECURITY_REPORT_2026-02-14.md` (requieren upgrades mayores de Next/ESLint config).

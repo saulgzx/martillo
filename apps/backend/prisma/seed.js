@@ -80,14 +80,14 @@ async function main() {
     where: { email: 'agonz@martillo.com' },
     update: {
       fullName: 'Agonz',
-      role: Role.BIDDER,
+      role: Role.USER,
       status: 'ACTIVE',
       passwordHash: agonzPasswordHash,
     },
     create: {
       email: 'agonz@martillo.com',
       passwordHash: agonzPasswordHash,
-      role: Role.BIDDER,
+      role: Role.USER,
       fullName: 'Agonz',
       rut: '12.345.678-5',
       phone: '+56912345678',
@@ -118,14 +118,14 @@ async function main() {
     where: { email: 'cliente.test@martillo.com' },
     update: {
       fullName: 'Cliente Test Martillo',
-      role: Role.BIDDER,
+      role: Role.USER,
       status: 'ACTIVE',
       passwordHash: qaClientPasswordHash,
     },
     create: {
       email: 'cliente.test@martillo.com',
       passwordHash: qaClientPasswordHash,
-      role: Role.BIDDER,
+      role: Role.USER,
       fullName: 'Cliente Test Martillo',
       rut: '10.000.000-2',
       phone: '+56910000002',

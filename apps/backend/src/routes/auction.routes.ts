@@ -52,7 +52,7 @@ router.get(
 router.get(
   '/',
   authenticate,
-  authorize('ADMIN', 'AUCTIONEER'),
+  authorize('SUPERADMIN', 'ADMIN'),
   asyncHandler(async (req, res) => {
     const pagination = paginationSchema.parse(req.query);
     const filters = {
@@ -70,7 +70,7 @@ router.get(
 router.post(
   '/',
   authenticate,
-  authorize('ADMIN'),
+  authorize('SUPERADMIN', 'ADMIN'),
   asyncHandler(async (req, res) => {
     const payload = auctionCreateSchema.parse(req.body);
     const data = await createAuction(payload, req.user!.id);
@@ -90,7 +90,7 @@ router.get(
 router.put(
   '/:id',
   authenticate,
-  authorize('ADMIN'),
+  authorize('SUPERADMIN', 'ADMIN'),
   asyncHandler(async (req, res) => {
     const payload = auctionUpdateSchema.parse(req.body);
     const data = await updateAuction(String(req.params.id), payload, req.user!.id);
@@ -101,7 +101,7 @@ router.put(
 router.post(
   '/:id/publish',
   authenticate,
-  authorize('ADMIN'),
+  authorize('SUPERADMIN', 'ADMIN'),
   asyncHandler(async (req, res) => {
     const data = await publishAuction(String(req.params.id), req.user!.id);
     res.json({ success: true, data });
@@ -111,7 +111,7 @@ router.post(
 router.delete(
   '/:id',
   authenticate,
-  authorize('ADMIN'),
+  authorize('SUPERADMIN', 'ADMIN'),
   asyncHandler(async (req, res) => {
     const data = await cancelAuction(String(req.params.id), req.user!.id);
     res.json({ success: true, data });

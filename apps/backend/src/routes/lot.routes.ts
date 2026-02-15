@@ -38,7 +38,7 @@ router.get(
 router.post(
   '/auctions/:auctionId/lots',
   authenticate,
-  authorize('ADMIN'),
+  authorize('SUPERADMIN', 'ADMIN'),
   asyncHandler(async (req, res) => {
     const payload = lotCreateSchema.parse(req.body);
     const data = await createLot({
@@ -55,7 +55,7 @@ router.post(
 router.put(
   '/auctions/:auctionId/lots/:lotId',
   authenticate,
-  authorize('ADMIN'),
+  authorize('SUPERADMIN', 'ADMIN'),
   asyncHandler(async (req, res) => {
     const payload = lotUpdateSchema.parse(req.body);
     const data = await updateLot(String(req.params.lotId), {
@@ -72,7 +72,7 @@ router.put(
 router.delete(
   '/auctions/:auctionId/lots/:lotId',
   authenticate,
-  authorize('ADMIN'),
+  authorize('SUPERADMIN', 'ADMIN'),
   asyncHandler(async (req, res) => {
     await deleteLot(String(req.params.lotId));
     res.status(204).send();
@@ -82,7 +82,7 @@ router.delete(
 router.post(
   '/auctions/:auctionId/lots/reorder',
   authenticate,
-  authorize('ADMIN'),
+  authorize('SUPERADMIN', 'ADMIN'),
   asyncHandler(async (req, res) => {
     const payload = z.object({ orderedIds: z.array(z.string().min(1)).min(1) }).parse(req.body);
     await reorderLots(String(req.params.auctionId), payload.orderedIds);
@@ -93,7 +93,7 @@ router.post(
 router.post(
   '/lots/:lotId/media',
   authenticate,
-  authorize('ADMIN'),
+  authorize('SUPERADMIN', 'ADMIN'),
   lotMediaRateLimiter,
   upload.array('files', 10),
   asyncHandler(async (req, res) => {
@@ -106,7 +106,7 @@ router.post(
 router.delete(
   '/lots/:lotId/media/:mediaId',
   authenticate,
-  authorize('ADMIN'),
+  authorize('SUPERADMIN', 'ADMIN'),
   asyncHandler(async (req, res) => {
     await removeMedia(String(req.params.mediaId));
     res.status(204).send();

@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-const adminRoles = new Set(['SUPERADMIN', 'ADMIN', 'AUCTIONEER']);
+const adminRoles = new Set(['SUPERADMIN', 'ADMIN']);
 const protectedPrefixes = [
   '/dashboard',
   '/auction',

@@ -1,4 +1,4 @@
-export type UserRole = 'SUPERADMIN' | 'ADMIN' | 'AUCTIONEER' | 'CONSIGNOR' | 'BIDDER';
+export type UserRole = 'SUPERADMIN' | 'ADMIN' | 'USER';
 export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'BANNED';
 
 export interface LoginRequest {

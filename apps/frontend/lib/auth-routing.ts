@@ -1,6 +1,6 @@
 import type { UserPublic, UserRole } from '@martillo/shared';
 
-const ADMIN_ROLES: UserRole[] = ['SUPERADMIN', 'ADMIN', 'AUCTIONEER'];
+const ADMIN_ROLES: UserRole[] = ['SUPERADMIN', 'ADMIN'];
 
 export function isAdminRole(role: UserRole | null | undefined): boolean {
   if (!role) return false;

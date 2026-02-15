@@ -13,16 +13,16 @@ type AuthSocket = Socket & {
 
 const stateService = new AuctionStateService();
 
-function isAuctioneer(role: string): boolean {
-  return role === Role.AUCTIONEER || role === Role.ADMIN || role === Role.SUPERADMIN;
+function isAuctionOperator(role: string): boolean {
+  return role === Role.ADMIN || role === Role.SUPERADMIN;
 }
 
 export function registerAuctionEvents(namespace: Namespace) {
   namespace.on('connection', (socket: AuthSocket) => {
     // --- JOIN ---
     socket.on('auction:join', async ({ auctionId }: { auctionId: string }) => {
-      // Auctioneers and admins can join without being a bidder
-      if (isAuctioneer(socket.data.role)) {
+      // Admin operators can join without being a bidder
+      if (isAuctionOperator(socket.data.role)) {
         await socket.join(auctionId);
         const activeLotId = await stateService.getActiveLot(auctionId);
         const connectedCount = (await namespace.in(auctionId).fetchSockets()).length;
@@ -151,7 +151,7 @@ export function registerAuctionEvents(namespace: Namespace) {
       },
     );
 
-    // --- AUCTIONEER: REGISTER PRESENCIAL BID ---
+    // --- ADMIN: REGISTER PRESENCIAL BID ---
     socket.on(
       'auction:auctioneer:bid-presencial',
       async ({
@@ -165,8 +165,8 @@ export function registerAuctionEvents(namespace: Namespace) {
         amount: number;
         paddleNumber: number;
       }) => {
-        if (!isAuctioneer(socket.data.role)) {
-          socket.emit('bid:rejected', { reason: 'Unauthorized: AUCTIONEER role required' });
+        if (!isAuctionOperator(socket.data.role)) {
+          socket.emit('bid:rejected', { reason: 'Unauthorized: ADMIN role required' });
           return;
         }
 
@@ -244,9 +244,9 @@ export function registerAuctionEvents(namespace: Namespace) {
       },
     );
 
-    // --- AUCTIONEER: NEXT LOT ---
+    // --- ADMIN: NEXT LOT ---
     socket.on('auction:auctioneer:next-lot', async ({ auctionId }: { auctionId: string }) => {
-      if (!isAuctioneer(socket.data.role)) {
+      if (!isAuctionOperator(socket.data.role)) {
         socket.emit('bid:rejected', { reason: 'Unauthorized' });
         return;
       }
@@ -315,11 +315,11 @@ export function registerAuctionEvents(namespace: Namespace) {
       });
     });
 
-    // --- AUCTIONEER: ADJUDICATE ---
+    // --- ADMIN: ADJUDICATE ---
     socket.on(
       'auction:auctioneer:adjudicate',
       async ({ auctionId, lotId }: { auctionId: string; lotId: string }) => {
-        if (!isAuctioneer(socket.data.role)) {
+        if (!isAuctionOperator(socket.data.role)) {
           socket.emit('bid:rejected', { reason: 'Unauthorized' });
           return;
         }
@@ -424,11 +424,11 @@ export function registerAuctionEvents(namespace: Namespace) {
       },
     );
 
-    // --- AUCTIONEER: SKIP LOT (no bids) ---
+    // --- ADMIN: SKIP LOT (no bids) ---
     socket.on(
       'auction:auctioneer:skip-lot',
       async ({ auctionId, lotId }: { auctionId: string; lotId: string }) => {
-        if (!isAuctioneer(socket.data.role)) {
+        if (!isAuctionOperator(socket.data.role)) {
           socket.emit('bid:rejected', { reason: 'Unauthorized' });
           return;
         }
@@ -452,11 +452,11 @@ export function registerAuctionEvents(namespace: Namespace) {
       },
     );
 
-    // --- AUCTIONEER: PAUSE ---
+    // --- ADMIN: PAUSE ---
     socket.on(
       'auction:auctioneer:pause',
       async ({ auctionId, reason }: { auctionId: string; reason?: string }) => {
-        if (!isAuctioneer(socket.data.role)) {
+        if (!isAuctionOperator(socket.data.role)) {
           socket.emit('bid:rejected', { reason: 'Unauthorized' });
           return;
         }
@@ -480,9 +480,9 @@ export function registerAuctionEvents(namespace: Namespace) {
       },
     );
 
-    // --- AUCTIONEER: RESUME ---
+    // --- ADMIN: RESUME ---
     socket.on('auction:auctioneer:resume', async ({ auctionId }: { auctionId: string }) => {
-      if (!isAuctioneer(socket.data.role)) {
+      if (!isAuctionOperator(socket.data.role)) {
         socket.emit('bid:rejected', { reason: 'Unauthorized' });
         return;
       }
@@ -503,9 +503,9 @@ export function registerAuctionEvents(namespace: Namespace) {
       });
     });
 
-    // --- AUCTIONEER: END AUCTION ---
+    // --- ADMIN: END AUCTION ---
     socket.on('auction:auctioneer:end', async ({ auctionId }: { auctionId: string }) => {
-      if (!isAuctioneer(socket.data.role)) {
+      if (!isAuctionOperator(socket.data.role)) {
         socket.emit('bid:rejected', { reason: 'Unauthorized' });
         return;
       }

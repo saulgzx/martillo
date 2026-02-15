@@ -10,9 +10,7 @@ datasource db {
 enum Role {
   SUPERADMIN
   ADMIN
-  AUCTIONEER
-  CONSIGNOR
-  BIDDER
+  USER
 }
 
 enum UserStatus {
