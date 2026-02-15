@@ -4,21 +4,30 @@ import { redis } from '../lib/redis';
 
 export const healthRouter = Router();
 
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_resolve, reject) => {
+      setTimeout(() => reject(new Error('timeout')), ms);
+    }),
+  ]);
+}
+
 healthRouter.get('/', async (_req, res) => {
   let db: 'connected' | 'error' = 'connected';
   let redisStatus: 'connected' | 'error' = 'connected';
 
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    await withTimeout(prisma.$queryRaw`SELECT 1`, 1500);
   } catch {
     db = 'error';
   }
 
   try {
     if (redis.status !== 'ready') {
-      await redis.connect();
+      await withTimeout(redis.connect(), 1500);
     }
-    await redis.ping();
+    await withTimeout(redis.ping(), 1500);
   } catch {
     redisStatus = 'error';
   }
