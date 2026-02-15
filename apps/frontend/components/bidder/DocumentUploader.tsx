@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 type Props = {
   label: string;
@@ -12,6 +12,14 @@ type Props = {
 export function DocumentUploader({ label, file, onChange, required }: Props) {
   const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
 
+  useEffect(() => {
+    if (!previewUrl) return;
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
+
+  const isImage = Boolean(file?.type && file.type.startsWith('image/'));
+  const isPdf = file?.type === 'application/pdf';
+
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium text-foreground">
@@ -19,7 +27,7 @@ export function DocumentUploader({ label, file, onChange, required }: Props) {
       </label>
       <input
         type="file"
-        accept="image/*,application/pdf"
+        accept="image/jpeg,image/png,image/webp,application/pdf"
         className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         onChange={(event) => onChange(event.target.files?.[0] ?? null)}
       />
@@ -28,11 +36,18 @@ export function DocumentUploader({ label, file, onChange, required }: Props) {
       ) : (
         <p className="text-xs text-muted-foreground">Sin archivo seleccionado</p>
       )}
-      {previewUrl && file?.type.startsWith('image/') ? (
+      {previewUrl && isImage ? (
         <img
           src={previewUrl}
           alt="Vista previa de documento"
           className="h-28 w-full rounded-md border border-border object-cover"
+        />
+      ) : null}
+      {previewUrl && isPdf ? (
+        <iframe
+          src={previewUrl}
+          className="h-28 w-full rounded-md border border-border"
+          title="Vista previa PDF"
         />
       ) : null}
     </div>

@@ -9,7 +9,10 @@ type DocumentItem = {
   id: string;
   type: 'IDENTITY' | 'ADDRESS';
   uploadedAt: string;
-  url: string;
+  originalName?: string | null;
+  mimeType?: string | null;
+  previewUrl: string;
+  downloadUrl: string;
 };
 
 type BidderRow = {
@@ -36,7 +39,7 @@ type Props = {
 export function BidderDetailDrawer({ open, auctionId, bidder, onClose, onActionDone }: Props) {
   const [reason, setReason] = useState('');
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
-  const [viewerUrl, setViewerUrl] = useState<string | null>(null);
+  const [viewerDoc, setViewerDoc] = useState<DocumentItem | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -87,13 +90,28 @@ export function BidderDetailDrawer({ open, auctionId, bidder, onClose, onActionD
             <p className="text-sm text-muted-foreground">Sin documentos</p>
           ) : null}
           {documents.map((document) => (
-            <button
+            <div
               key={document.id}
-              className="w-full rounded-md border border-border px-3 py-2 text-left text-sm"
-              onClick={() => setViewerUrl(document.url)}
+              className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2 text-left text-sm"
             >
-              {document.type} - {new Date(document.uploadedAt).toLocaleString('es-CL')}
-            </button>
+              <div className="min-w-0">
+                <p className="font-medium text-foreground">{document.type}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {document.originalName ?? 'Documento'} ·{' '}
+                  {new Date(document.uploadedAt).toLocaleString('es-CL')}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <Button size="sm" variant="outline" onClick={() => setViewerDoc(document)}>
+                  Ver
+                </Button>
+                <Button asChild size="sm" variant="outline">
+                  <a href={document.downloadUrl} target="_blank" rel="noreferrer">
+                    Descargar
+                  </a>
+                </Button>
+              </div>
+            </div>
           ))}
         </div>
 
@@ -124,9 +142,9 @@ export function BidderDetailDrawer({ open, auctionId, bidder, onClose, onActionD
       </aside>
 
       <DocumentViewer
-        open={Boolean(viewerUrl)}
-        url={viewerUrl}
-        onClose={() => setViewerUrl(null)}
+        open={Boolean(viewerDoc)}
+        document={viewerDoc}
+        onClose={() => setViewerDoc(null)}
       />
     </>
   );

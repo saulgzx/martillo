@@ -6,6 +6,11 @@ import { assertValidUploadedFile } from '../middleware/upload.middleware';
 
 const DOCUMENT_URL_TTL_SECONDS = 60 * 60;
 
+type SignedUrlOptions = {
+  asAttachment?: boolean;
+  resourceType?: 'image' | 'raw' | 'auto';
+};
+
 export async function uploadDocument(
   userId: string,
   auctionId: string,
@@ -42,19 +47,29 @@ export async function uploadDocument(
       bidderId: bidder.id,
       type,
       cloudinaryId: result.public_id,
+      originalName: file.originalname,
+      mimeType: file.mimetype,
+      // Cloudinary metadata (best-effort)
+      format: (result as unknown as { format?: string }).format ?? null,
+      resourceType: (result as unknown as { resource_type?: string }).resource_type ?? resourceType,
+      bytes: (result as unknown as { bytes?: number }).bytes ?? null,
     },
   });
 
   return document;
 }
 
-export async function generateSignedUrl(cloudinaryId: string): Promise<string> {
+export async function generateSignedUrl(
+  cloudinaryId: string,
+  options?: SignedUrlOptions,
+): Promise<string> {
   const expiresAt = Math.floor(Date.now() / 1000) + DOCUMENT_URL_TTL_SECONDS;
   return cloudinary.url(cloudinaryId, {
     sign_url: true,
     type: 'authenticated',
-    resource_type: 'auto',
+    resource_type: options?.resourceType ?? 'auto',
     expires_at: expiresAt,
+    flags: options?.asAttachment ? 'attachment' : undefined,
   });
 }
 
@@ -91,7 +106,17 @@ export async function getDocuments(
       id: document.id,
       type: document.type,
       uploadedAt: document.uploadedAt,
-      url: await generateSignedUrl(document.cloudinaryId),
+      originalName: document.originalName,
+      mimeType: document.mimeType,
+      previewUrl: await generateSignedUrl(document.cloudinaryId, {
+        resourceType:
+          document.resourceType === 'raw' || document.format === 'pdf' ? 'raw' : 'image',
+      }),
+      downloadUrl: await generateSignedUrl(document.cloudinaryId, {
+        asAttachment: true,
+        resourceType:
+          document.resourceType === 'raw' || document.format === 'pdf' ? 'raw' : 'image',
+      }),
     })),
   );
 

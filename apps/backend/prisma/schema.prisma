@@ -286,6 +286,11 @@ model BidderDocument {
   bidderId     String
   type         DocumentType
   cloudinaryId String
+  originalName String?
+  mimeType     String?
+  format       String?
+  resourceType String?
+  bytes        Int?
   uploadedAt   DateTime     @default(now())
   bidder       Bidder       @relation(fields: [bidderId], references: [id], onDelete: Cascade)
 
