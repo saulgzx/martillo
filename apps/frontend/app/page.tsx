@@ -1,5 +1,4 @@
 import { AuctionCard } from '@/components/auction/AuctionCard';
-import Link from 'next/link';
 import type { PublicAuction } from '@/lib/mock-auctions';
 import { mockAuctions } from '@/lib/mock-auctions';
 import { AppTopbar } from '@/components/common/AppTopbar';
@@ -64,39 +63,6 @@ export default async function Home() {
         >
           Ver remates activos
         </a>
-      </section>
-
-      <section className="rounded-xl border border-border bg-background p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-foreground">Modo pruebas rapidas</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Accesos directos para validar flujos de cliente y administrador.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Link
-            href="/login"
-            className="rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted"
-          >
-            Iniciar sesion
-          </Link>
-          <Link
-            href="/dashboard"
-            className="rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted"
-          >
-            Dashboard cliente
-          </Link>
-          <Link
-            href="/admin"
-            className="rounded-md bg-brand-blue px-4 py-2 text-sm font-medium text-white hover:opacity-90"
-          >
-            Panel admin
-          </Link>
-          <Link
-            href="/admin/auctions"
-            className="rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted"
-          >
-            Gestion de remates
-          </Link>
-        </div>
       </section>
 
       <section id="remates" className="space-y-4">

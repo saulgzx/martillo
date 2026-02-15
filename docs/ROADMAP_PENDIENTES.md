@@ -72,6 +72,8 @@
   - Hotfix rutas frontend admin:
     - módulo administrativo movido de `app/(admin)` a `app/admin` para exponer rutas reales `/admin/*`
     - corregida colisión de rutas y error de build Vercel `page_client-reference-manifest` en `/(admin)/page`
+  - UX home pública:
+    - removido bloque "Modo pruebas rápidas" de `/` para dejar accesos operativos solo en vista de administrador
   - Auditoría de dependencias ejecutada:
     - `npm audit --audit-level=moderate` realizado.
     - Pendientes documentados en `docs/SECURITY_REPORT_2026-02-14.md` (requieren upgrades mayores de Next/ESLint config).
