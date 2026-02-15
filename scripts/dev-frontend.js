@@ -15,6 +15,21 @@ function run(command, args, extraEnv, cwd) {
   });
 }
 
+function getPortPidWindows(port) {
+  const res = spawnSync(
+    'powershell.exe',
+    [
+      '-NoProfile',
+      '-Command',
+      // Return the first owning PID (or nothing).
+      `(Get-NetTCPConnection -LocalPort ${port} -ErrorAction SilentlyContinue | Select-Object -First 1).OwningProcess`,
+    ],
+    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], shell: true },
+  );
+  const pid = Number.parseInt(String(res.stdout ?? '').trim(), 10);
+  return Number.isFinite(pid) && pid > 0 ? pid : null;
+}
+
 function killPortWindows(port) {
   // Best-effort; if port isn't in use, this is a no-op.
   spawnSync(
@@ -35,7 +50,21 @@ const allowed = new Set([20, 22, 24]);
 const frontendCwd = path.resolve(__dirname, '..', 'apps', 'frontend');
 
 // Prevent breaking a running server by deleting `.next` under it.
-if (process.platform === 'win32') killPortWindows(3000);
+// If we fail to free port 3000, do NOT proceed with clean:next.
+if (process.platform === 'win32') {
+  const before = getPortPidWindows(3000);
+  if (before) {
+    killPortWindows(3000);
+    const after = getPortPidWindows(3000);
+    if (after) {
+      console.error(
+        `[martillo] Puerto 3000 sigue en uso (PID ${after}). ` +
+          'Cierra el proceso/terminal que esta ejecutando Next y vuelve a correr el comando.',
+      );
+      process.exit(1);
+    }
+  }
+}
 
 const stableEnv = {
   MARTILLO_SKIP_NODE_CHECK: '1',
