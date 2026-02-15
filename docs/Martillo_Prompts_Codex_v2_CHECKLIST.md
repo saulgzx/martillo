@@ -79,3 +79,7 @@ Ultima actualizacion: 2026-02-15 - Restriccion de \"Mi cuenta\": ADMIN/SUPERADMI
 Migraciones Prisma (local): 2026-02-15 - Ejecutado `prisma migrate deploy` (sin pendientes) y `prisma db seed` contra el `DATABASE_URL` actual (Railway). Backend /health OK en `http://localhost:4000/health`.
 
 Admin UX (baseline): 2026-02-15 - Agregado modulo `Admin > Usuarios` (`/admin/users`) con listado + acciones de estado (activar/desactivar/banear). Agregada pagina `Admin > Notificaciones` (`/admin/notifications`) y contador de no leidas visible para ADMIN/SUPERADMIN en el topbar (link a notificaciones). Endpoints: `GET /api/admin/notifications` soporta `unreadOnly=true` y retorna `unreadTotal`; `POST /api/admin/notifications/read-all` marca como leidas. Backend: `GET/POST /api/admin/users` para gestion de usuarios (USER).
+
+Postores (admin): 2026-02-15 - Agregada pagina `Admin > Postores` (`/admin/bidders`) para ver solicitudes por estado (default PENDING) y acceder a la verificacion por remate (`/admin/auctions/:id/bidders`). Al crear solicitud de postor (POST `/api/auctions/:id/register`) se genera notificacion `BIDDER_APPLICATION_CREATED` para ADMIN/SUPERADMIN (visible en `/admin/notifications`).
+
+Dev UX (Node): 2026-02-15 - `scripts/check-node.js` ahora permite Node 24 local con warning (sin bloquear `npm run build`), manteniendo Node 20/22 como recomendados para compatibilidad con Next.js.

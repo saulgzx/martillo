@@ -47,14 +47,14 @@ cp apps/frontend/.env.example apps/frontend/.env.local
 
 ## Scripts
 
-| Script                 | Descripcion                             |
-| ---------------------- | --------------------------------------- |
-| `npm run dev`          | Inicia frontend y backend en paralelo   |
-| `npm run dev:frontend` | Inicia solo el frontend (Next.js)       |
-| `npm run dev:backend`  | Inicia solo el backend (Express)        |
-| `npm run build`        | Build de produccion completo            |
-| `npm run lint`         | Ejecuta ESLint en los workspaces        |
-| `npm run format`       | Formatea codigo con Prettier            |
+| Script                 | Descripcion                           |
+| ---------------------- | ------------------------------------- |
+| `npm run dev`          | Inicia frontend y backend en paralelo |
+| `npm run dev:frontend` | Inicia solo el frontend (Next.js)     |
+| `npm run dev:backend`  | Inicia solo el backend (Express)      |
+| `npm run build`        | Build de produccion completo          |
+| `npm run lint`         | Ejecuta ESLint en los workspaces      |
+| `npm run format`       | Formatea codigo con Prettier          |
 
 ## Estructura
 
@@ -75,4 +75,3 @@ martillo/
 - Frontend: Next.js 14, TypeScript, TailwindCSS, shadcn/ui
 - Backend: Node.js, Express, TypeScript
 - Monorepo: npm workspaces
-

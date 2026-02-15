@@ -101,17 +101,13 @@ export default function AdminNotificationsPage() {
 
       <section className="rounded-xl border border-border bg-background p-4 shadow-sm">
         {items.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
-            No hay notificaciones.
-          </p>
+          <p className="py-6 text-center text-sm text-muted-foreground">No hay notificaciones.</p>
         ) : (
           <div className="space-y-3">
             {items.map((item) => (
               <div
                 key={item.id}
-                className={`rounded-lg border border-border p-4 ${
-                  item.readAt ? 'opacity-70' : ''
-                }`}
+                className={`rounded-lg border border-border p-4 ${item.readAt ? 'opacity-70' : ''}`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="space-y-1">

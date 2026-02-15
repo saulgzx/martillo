@@ -59,4 +59,3 @@ if (allowed.has(major)) {
     });
   });
 }
-

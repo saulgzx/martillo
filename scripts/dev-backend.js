@@ -40,4 +40,3 @@ const env = allowed.has(major)
     };
 
 run('npm', ['run', 'dev'], env, backendCwd);
-

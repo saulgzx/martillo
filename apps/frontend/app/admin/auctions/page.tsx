@@ -37,16 +37,10 @@ export default function AdminAuctionsPage() {
                 <Link href={`/admin/auctions/${row.id}/lots`} className="text-primary underline">
                   Ver lotes
                 </Link>
-                <Link
-                  href={`/admin/auctions/${row.id}/bidders`}
-                  className="text-primary underline"
-                >
+                <Link href={`/admin/auctions/${row.id}/bidders`} className="text-primary underline">
                   Postores
                 </Link>
-                <Link
-                  href={`/admin/auctions/${row.id}/control`}
-                  className="text-primary underline"
-                >
+                <Link href={`/admin/auctions/${row.id}/control`} className="text-primary underline">
                   Control
                 </Link>
               </div>
@@ -57,4 +51,3 @@ export default function AdminAuctionsPage() {
     </div>
   );
 }
-

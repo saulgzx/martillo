@@ -60,7 +60,7 @@ export default function AdminUsersPage() {
   async function setUserStatus(userId: string, nextStatus: UserRow['status']) {
     const reason =
       nextStatus === 'BANNED'
-        ? window.prompt('Motivo del baneo (opcional):') ?? undefined
+        ? (window.prompt('Motivo del baneo (opcional):') ?? undefined)
         : undefined;
     setLoading(true);
     setError(null);
@@ -199,4 +199,3 @@ export default function AdminUsersPage() {
     </main>
   );
 }
-

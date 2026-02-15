@@ -7,14 +7,14 @@ const adminModules = [
     description: 'Crear, editar, publicar y controlar remates.',
   },
   {
+    href: '/admin/bidders',
+    title: 'Postores',
+    description: 'Revisar solicitudes pendientes y aprobar/rechazar postores.',
+  },
+  {
     href: '/admin/payments',
     title: 'Pagos',
     description: 'Monitorear estados de pago y acciones manuales.',
-  },
-  {
-    href: '/admin/auctions',
-    title: 'Postores',
-    description: 'Desde Remates, ingresar al modulo de postores por cada subasta.',
   },
   {
     href: '/admin/auctions',
