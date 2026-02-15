@@ -29,13 +29,30 @@ function killPortWindows(port) {
 }
 
 const major = nodeMajor();
-const allowed = new Set([20, 22]);
+// Next.js dev should work on 20/22 and is generally fine on 24 as well.
+// If it misbehaves on a specific machine, set `MARTILLO_FRONTEND_MODE=stable`.
+const allowed = new Set([20, 22, 24]);
 const frontendCwd = path.resolve(__dirname, '..', 'apps', 'frontend');
 
 // Prevent breaking a running server by deleting `.next` under it.
 if (process.platform === 'win32') killPortWindows(3000);
 
-if (allowed.has(major)) {
+const stableEnv = {
+  MARTILLO_SKIP_NODE_CHECK: '1',
+  NEXT_TELEMETRY_DISABLED: '1',
+};
+
+// Optional override for troubleshooting.
+if (process.env.MARTILLO_FRONTEND_MODE === 'stable') {
+  console.warn('[martillo] MARTILLO_FRONTEND_MODE=stable activo (build + start).');
+  run('npm', ['run', 'clean:next'], stableEnv, frontendCwd).on('exit', (code) => {
+    if (code !== 0) process.exit(code ?? 1);
+    run('npm', ['run', 'build'], stableEnv, frontendCwd).on('exit', (buildCode) => {
+      if (buildCode !== 0) process.exit(buildCode ?? 1);
+      run('npm', ['run', 'start'], stableEnv, frontendCwd);
+    });
+  });
+} else if (allowed.has(major)) {
   run('npm', ['run', 'clean:next'], {}, frontendCwd).on('exit', (code) => {
     if (code !== 0) process.exit(code ?? 1);
     run('npm', ['run', 'dev'], {}, frontendCwd);
@@ -46,16 +63,11 @@ if (allowed.has(major)) {
       `Frontend se ejecutara en modo estable (clean + build + start) para evitar fallos de Next dev.`,
   );
 
-  const env = {
-    MARTILLO_SKIP_NODE_CHECK: '1',
-    NEXT_TELEMETRY_DISABLED: '1',
-  };
-
-  run('npm', ['run', 'clean:next'], env, frontendCwd).on('exit', (code) => {
+  run('npm', ['run', 'clean:next'], stableEnv, frontendCwd).on('exit', (code) => {
     if (code !== 0) process.exit(code ?? 1);
-    run('npm', ['run', 'build'], env, frontendCwd).on('exit', (buildCode) => {
+    run('npm', ['run', 'build'], stableEnv, frontendCwd).on('exit', (buildCode) => {
       if (buildCode !== 0) process.exit(buildCode ?? 1);
-      run('npm', ['run', 'start'], env, frontendCwd);
+      run('npm', ['run', 'start'], stableEnv, frontendCwd);
     });
   });
 }
