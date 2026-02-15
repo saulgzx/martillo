@@ -5,8 +5,9 @@
   "scripts": {
     "predev": "node ../../scripts/check-node.js",
     "prebuild": "node ../../scripts/check-node.js",
-    "dev": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\" && next dev --port 3000",
-    "build": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\" && next build",
+    "clean:next": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\"",
+    "dev": "next dev --port 3000",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx}\"",
