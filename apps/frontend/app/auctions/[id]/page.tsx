@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { LotCard } from '@/components/lot/LotCard';
 import { mockAuctions } from '@/lib/mock-auctions';
 import { BidderStatusGate } from '@/components/bidder/BidderStatusGate';
+import { AppTopbar } from '@/components/common/AppTopbar';
 
 export function generateStaticParams() {
   return mockAuctions.map((auction) => ({ id: auction.id }));
@@ -15,6 +16,7 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-6xl space-y-8 px-6 py-10">
+      <AppTopbar />
       <header className="space-y-3">
         <h1 className="text-3xl font-semibold text-foreground">{auction.title}</h1>
         <p className="text-sm text-muted-foreground">
