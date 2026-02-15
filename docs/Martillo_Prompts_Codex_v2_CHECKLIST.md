@@ -75,3 +75,5 @@ Este archivo es solo tablero de estado (checklist operativo).
   - `PENDIENTE` = no implementado
 
 Ultima actualizacion: 2026-02-15 - Restriccion de \"Mi cuenta\": ADMIN/SUPERADMIN no pueden solicitar cambios ni acceder a /profile (redirige a /admin). Notificaciones minimas a ADMIN/SUPERADMIN al crear solicitud de cambio de perfil (endpoint /api/admin/notifications). Fix refreshToken: setea accessToken antes de /me (evita loop 401). Mis adjudicaciones ya no queda cargando infinito (timeout + manejo de error). Roles normalizados a SUPERADMIN/ADMIN/USER; topbar sin rol visible + menu \"Mi cuenta\" (logout dentro del submenu) y link a Dashboard para USER; perfil con flujo de solicitud de cambios (USER solicita / ADMIN aprueba o rechaza). Estabilidad de frontend: se fija Node soportado (22 recomendado/20) con `.nvmrc`/`.node-version` y check en scripts; build/dev limpian `.next` para evitar 404s en `/_next/static/*` que dejan el sitio sin estilos.
+
+Migraciones Prisma (local): 2026-02-15 - Ejecutado `prisma migrate deploy` (sin pendientes) y `prisma db seed` contra el `DATABASE_URL` actual (Railway). Backend /health OK en `http://localhost:4000/health`.
