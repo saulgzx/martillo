@@ -15,8 +15,8 @@ type AuthState = {
   accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (payload: LoginRequest) => Promise<void>;
-  register: (payload: RegisterRequest) => Promise<void>;
+  login: (payload: LoginRequest) => Promise<AuthResponse>;
+  register: (payload: RegisterRequest) => Promise<AuthResponse>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<string | null>;
   setUser: (user: UserPublic | null) => void;
@@ -61,6 +61,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
       });
       setAuthFlagCookie(true);
       setRoleCookie(response.data.data.user.role);
+      return response.data.data;
     } finally {
       set({ isLoading: false });
     }
@@ -81,6 +82,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
       });
       setAuthFlagCookie(true);
       setRoleCookie(response.data.data.user.role);
+      return response.data.data;
     } finally {
       set({ isLoading: false });
     }

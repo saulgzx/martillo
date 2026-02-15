@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -33,9 +32,7 @@ const registerSchema = z
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
-  const router = useRouter();
   const registerUser = useAuthStore((state) => state.register);
-  const user = useAuthStore((state) => state.user);
   const isLoading = useAuthStore((state) => state.isLoading);
 
   const {
@@ -47,15 +44,17 @@ export default function RegisterPage() {
   });
 
   const onSubmit = async (values: RegisterFormValues) => {
-    await registerUser({
+    const auth = await registerUser({
       fullName: values.fullName,
       rut: values.rut,
       email: values.email,
       phone: values.phone,
       password: values.password,
     });
-    const nextUser = useAuthStore.getState().user ?? user;
-    router.push(resolveHomePathByUser(nextUser));
+    const targetPath = resolveHomePathByUser(auth.user);
+    if (typeof window !== 'undefined') {
+      window.location.assign(targetPath);
+    }
   };
 
   return (

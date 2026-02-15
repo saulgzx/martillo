@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { AxiosError } from 'axios';
@@ -21,11 +20,9 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const login = useAuthStore((state) => state.login);
-  const user = useAuthStore((state) => state.user);
   const isLoading = useAuthStore((state) => state.isLoading);
 
   const {
@@ -39,9 +36,11 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginFormValues) => {
     setApiError(null);
     try {
-      await login(values);
-      const nextUser = useAuthStore.getState().user ?? user;
-      router.push(resolveHomePathByUser(nextUser));
+      const auth = await login(values);
+      const targetPath = resolveHomePathByUser(auth.user);
+      if (typeof window !== 'undefined') {
+        window.location.assign(targetPath);
+      }
     } catch (error) {
       const axiosError = error as AxiosError<{ message?: string }>;
       const message = axiosError.response?.data?.message;

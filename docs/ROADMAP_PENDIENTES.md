@@ -74,6 +74,9 @@
     - corregida colisión de rutas y error de build Vercel `page_client-reference-manifest` en `/(admin)/page`
   - UX home pública:
     - removido bloque "Modo pruebas rápidas" de `/` para dejar accesos operativos solo en vista de administrador
+  - Hotfix navegación auth frontend:
+    - login/register ahora redirigen con `window.location.assign(...)` usando el rol retornado por API
+    - evita quedarse en `/login` cuando la autenticación responde `success: true`
   - Auditoría de dependencias ejecutada:
     - `npm audit --audit-level=moderate` realizado.
     - Pendientes documentados en `docs/SECURITY_REPORT_2026-02-14.md` (requieren upgrades mayores de Next/ESLint config).
