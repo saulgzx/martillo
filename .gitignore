@@ -45,3 +45,5 @@ coverage/
 .runlogs/
 .tmp/
 .dev-secrets.json
+
+logs/
