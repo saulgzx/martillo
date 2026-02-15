@@ -33,11 +33,44 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = authConfig?.getAccessToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+  return (async () => {
+    const token = authConfig?.getAccessToken();
+    const url = String(config.url ?? '');
+
+    const isAuthEndpoint =
+      url.includes('/api/auth/login') ||
+      url.includes('/api/auth/register') ||
+      url.includes('/api/auth/refresh') ||
+      url.includes('/api/auth/logout');
+
+    // If the user was previously authenticated (cookie flag), try to restore a token
+    // before making protected requests. This avoids 401 spam after page reloads.
+    if (
+      !token &&
+      !isAuthEndpoint &&
+      typeof document !== 'undefined' &&
+      document.cookie.includes('martillo_auth=1') &&
+      authConfig
+    ) {
+      if (!refreshingPromise) {
+        refreshingPromise = authConfig.refreshAccessToken().finally(() => {
+          refreshingPromise = null;
+        });
+      }
+
+      const refreshed = await refreshingPromise;
+      if (refreshed) {
+        config.headers.Authorization = `Bearer ${refreshed}`;
+        return config;
+      }
+    }
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  })();
 });
 
 apiClient.interceptors.response.use(
