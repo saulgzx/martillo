@@ -69,6 +69,9 @@
     - hub admin (`/admin`) con accesos operativos
     - dashboard cliente mejorado con accesos directos
     - topbar común para uso de plataforma en ambos perfiles
+  - Hotfix rutas frontend admin:
+    - módulo administrativo movido de `app/(admin)` a `app/admin` para exponer rutas reales `/admin/*`
+    - corregida colisión de rutas y error de build Vercel `page_client-reference-manifest` en `/(admin)/page`
   - Auditoría de dependencias ejecutada:
     - `npm audit --audit-level=moderate` realizado.
     - Pendientes documentados en `docs/SECURITY_REPORT_2026-02-14.md` (requieren upgrades mayores de Next/ESLint config).
@@ -140,8 +143,8 @@ Estado Fase 1: DONE (validado en este ciclo)
 **Archivos a modificar:**
 - `apps/frontend/app/page.tsx` â€” reemplazar mock por fetch a API
 - `apps/frontend/app/auctions/[id]/page.tsx` â€” fetch real
-- `apps/frontend/app/(admin)/auctions/page.tsx` â€” conectar a API
-- `apps/frontend/app/(admin)/auctions/[id]/lots/page.tsx` â€” conectar a API
+- `apps/frontend/app/admin/auctions/page.tsx` â€” conectar a API
+- `apps/frontend/app/admin/auctions/[id]/lots/page.tsx` â€” conectar a API
 
 **Tareas:**
 - [x] Reemplazar `mockAuctions` en home por fetch a `GET /api/auctions/public`
@@ -192,7 +195,7 @@ Estado Fase 1: DONE (validado en este ciclo)
 **Archivos a crear:**
 - `apps/frontend/hooks/useAuctionSocket.ts`
 - `apps/frontend/app/(auction)/auctions/[id]/live/page.tsx`
-- `apps/frontend/app/(admin)/auctions/[id]/control/page.tsx`
+- `apps/frontend/app/admin/auctions/[id]/control/page.tsx`
 - `apps/frontend/components/auction/BidHistory.tsx`
 - `apps/frontend/components/auction/CountdownTimer.tsx`
 - `apps/frontend/components/auction/PriceDisplay.tsx`
@@ -304,7 +307,7 @@ enum DocumentType { IDENTITY ADDRESS }
 **Archivos a crear:**
 - `apps/frontend/app/(auction)/auctions/[id]/register/page.tsx`
 - `apps/frontend/app/(auth)/profile/page.tsx`
-- `apps/frontend/app/(admin)/auctions/[id]/bidders/page.tsx`
+- `apps/frontend/app/admin/auctions/[id]/bidders/page.tsx`
 - `apps/frontend/components/bidder/ApplicationStepper.tsx`
 - `apps/frontend/components/bidder/DocumentUploader.tsx`
 - `apps/frontend/components/bidder/BidderStatusBanner.tsx`
@@ -411,7 +414,7 @@ npm install resend -w apps/backend
 - `apps/frontend/app/(auth)/payments/[id]/page.tsx`
 - `apps/frontend/app/(auth)/payments/return/page.tsx`
 - `apps/frontend/app/(auth)/my-adjudications/page.tsx`
-- `apps/frontend/app/(admin)/payments/page.tsx`
+- `apps/frontend/app/admin/payments/page.tsx`
 
 **Tareas:**
 - [ ] PÃ¡gina de pago: desglose (adjudicaciÃ³n + comisiÃ³n + IVA = total), countdown, botÃ³n Flow
