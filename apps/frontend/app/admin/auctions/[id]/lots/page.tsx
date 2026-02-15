@@ -292,7 +292,7 @@ export default function AdminLotsPage() {
                   ) : (
                     <div className="flex h-full w-full items-center justify-center">
                       <Image
-                        src="/martillo_icon.svg"
+                        src="/brand/martillo_icon.svg"
                         alt="Martillo"
                         width={88}
                         height={88}
