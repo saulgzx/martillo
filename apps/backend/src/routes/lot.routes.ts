@@ -4,8 +4,10 @@ import { asyncHandler } from '../utils/async-handler';
 import { authorize, authenticate } from '../middleware/auth.middleware';
 import { upload } from '../middleware/upload.middleware';
 import { lotMediaRateLimiter } from '../config/security';
+import { prisma } from '../lib/prisma';
 import {
   addMedia,
+  activateNextLot,
   createLot,
   deleteLot,
   getLotsByAuction,
@@ -41,12 +43,21 @@ router.post(
   authorize('SUPERADMIN', 'ADMIN'),
   asyncHandler(async (req, res) => {
     const payload = lotCreateSchema.parse(req.body);
+    const auctionId = String(req.params.auctionId);
+
+    const maxOrder = await prisma.lot.aggregate({
+      where: { auctionId },
+      _max: { orderIndex: true },
+    });
+    const nextOrderIndex = (maxOrder._max.orderIndex ?? 0) + 1;
+
     const data = await createLot({
       ...payload,
       basePrice: payload.basePrice.toFixed(2),
       minIncrement: payload.minIncrement.toFixed(2),
       currentPrice: payload.basePrice.toFixed(2),
-      auction: { connect: { id: String(req.params.auctionId) } },
+      orderIndex: nextOrderIndex,
+      auction: { connect: { id: auctionId } },
     });
     res.status(201).json({ success: true, data });
   }),
@@ -87,6 +98,17 @@ router.post(
     const payload = z.object({ orderedIds: z.array(z.string().min(1)).min(1) }).parse(req.body);
     await reorderLots(String(req.params.auctionId), payload.orderedIds);
     res.status(204).send();
+  }),
+);
+
+// Minimal control endpoint used by the admin live-control UI. This is not the final Socket.io engine.
+router.post(
+  '/auctions/:auctionId/lots/next',
+  authenticate,
+  authorize('SUPERADMIN', 'ADMIN'),
+  asyncHandler(async (req, res) => {
+    const data = await activateNextLot(String(req.params.auctionId), req.user!.id);
+    res.json({ success: true, data });
   }),
 );
 

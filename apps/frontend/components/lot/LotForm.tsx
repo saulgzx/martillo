@@ -14,10 +14,16 @@ type LotFormValues = {
 };
 
 type LotFormProps = {
-  onSubmit?: (values: LotFormValues) => void;
+  onSubmit?: (values: LotFormValues) => void | Promise<void>;
+  submitting?: boolean;
+  submitLabel?: string;
 };
 
-export function LotForm({ onSubmit }: LotFormProps) {
+export function LotForm({
+  onSubmit,
+  submitting = false,
+  submitLabel = 'Guardar lote',
+}: LotFormProps) {
   const [values, setValues] = useState<LotFormValues>({
     title: '',
     description: '',
@@ -32,7 +38,7 @@ export function LotForm({ onSubmit }: LotFormProps) {
       className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
-        onSubmit?.(values);
+        void onSubmit?.(values);
       }}
     >
       <input
@@ -74,7 +80,9 @@ export function LotForm({ onSubmit }: LotFormProps) {
         }}
       />
 
-      <Button type="submit">Guardar lote</Button>
+      <Button type="submit" disabled={submitting}>
+        {submitting ? 'Guardando...' : submitLabel}
+      </Button>
     </form>
   );
 }

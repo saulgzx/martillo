@@ -127,3 +127,55 @@ export async function markLotStatus(id: string, status: LotStatus, actorId: stri
 
   return lot;
 }
+
+export async function activateNextLot(auctionId: string, actorId: string) {
+  const lots = await prisma.lot.findMany({
+    where: { auctionId },
+    orderBy: [{ orderIndex: 'asc' }, { createdAt: 'asc' }],
+    select: { id: true, status: true, orderIndex: true, createdAt: true },
+  });
+
+  if (lots.length === 0) {
+    throw new AppError(404, 'No lots found for auction');
+  }
+
+  const currentIndex = lots.findIndex((lot) => lot.status === LotStatus.ACTIVE);
+  const startIndex = currentIndex >= 0 ? currentIndex : -1;
+
+  const remaining = lots.slice(startIndex + 1);
+  // Prefer published lots, but allow draft lots to be activated in dev/test.
+  const candidate =
+    remaining.find((lot) => lot.status === LotStatus.PUBLISHED) ??
+    remaining.find((lot) => lot.status === LotStatus.DRAFT) ??
+    null;
+
+  if (!candidate) {
+    throw new AppError(404, 'No next lot available');
+  }
+
+  return prisma.$transaction(async (tx) => {
+    // Ensure only 1 active lot per auction.
+    await tx.lot.updateMany({
+      where: { auctionId, status: LotStatus.ACTIVE },
+      data: { status: LotStatus.PUBLISHED },
+    });
+
+    const updated = await tx.lot.update({
+      where: { id: candidate.id },
+      data: { status: LotStatus.ACTIVE },
+      include: { media: true },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        entity: 'Auction',
+        entityId: auctionId,
+        action: 'LOT_ACTIVATE_NEXT',
+        actorId,
+        newValue: { lotId: updated.id } as unknown as Prisma.InputJsonValue,
+      },
+    });
+
+    return updated;
+  });
+}

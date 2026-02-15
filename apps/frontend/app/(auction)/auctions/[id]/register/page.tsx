@@ -9,6 +9,21 @@ import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/auth.store';
 import { apiClient } from '@/lib/api';
 
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    promise
+      .then((value) => {
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
+
 export default function AuctionRegistrationPage() {
   const { id: auctionId } = useParams<{ id: string }>();
   const router = useRouter();
@@ -55,16 +70,36 @@ export default function AuctionRegistrationPage() {
         setLoading(false);
       }
     }
+
     if (!acceptTerms) {
       setError('Debes aceptar términos para continuar.');
       return;
     }
+
     setLoading(true);
     setError(null);
+
     try {
-      await apiClient.post(`/api/auctions/${auctionId}/register`);
+      await withTimeout(
+        apiClient.post(`/api/auctions/${auctionId}/register`),
+        12_000,
+        'Timeout al crear la solicitud. Reintenta.',
+      );
       setStep(2);
-    } catch {
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+
+      // If the user already applied, allow them to continue uploading documents.
+      if (status === 409) {
+        setStep(2);
+        return;
+      }
+
+      if (status === 401) {
+        setError('Tu sesión expiró. Inicia sesión nuevamente.');
+        return;
+      }
+
       setError('No se pudo crear la solicitud');
     } finally {
       setLoading(false);
@@ -76,6 +111,7 @@ export default function AuctionRegistrationPage() {
       router.push('/login');
       return;
     }
+
     if (!identityFile) {
       setError('Debes subir documento de identidad');
       return;
@@ -83,19 +119,28 @@ export default function AuctionRegistrationPage() {
 
     setLoading(true);
     setError(null);
+
     try {
       const identityData = new FormData();
       identityData.append('auctionId', auctionId);
       identityData.append('type', 'IDENTITY');
       identityData.append('file', identityFile);
-      await apiClient.post(`/api/users/${user.id}/documents`, identityData);
+      await withTimeout(
+        apiClient.post(`/api/users/${user.id}/documents`, identityData),
+        20_000,
+        'Timeout al subir documento de identidad. Reintenta.',
+      );
 
       if (addressFile) {
         const addressData = new FormData();
         addressData.append('auctionId', auctionId);
         addressData.append('type', 'ADDRESS');
         addressData.append('file', addressFile);
-        await apiClient.post(`/api/users/${user.id}/documents`, addressData);
+        await withTimeout(
+          apiClient.post(`/api/users/${user.id}/documents`, addressData),
+          20_000,
+          'Timeout al subir comprobante de domicilio. Reintenta.',
+        );
       }
 
       setStep(3);
@@ -121,12 +166,13 @@ export default function AuctionRegistrationPage() {
 
       {step === 1 ? (
         <section className="space-y-4 rounded-lg border border-border p-4">
-          <h2 className="text-sm font-semibold">Paso 1 - Datos y terminos</h2>
+          <h2 className="text-sm font-semibold">Paso 1 - Datos y términos</h2>
           <div className="rounded-md bg-muted p-3 text-sm">
             <p>Nombre: {user?.fullName ?? '--'}</p>
             <p>Email: {user?.email ?? '--'}</p>
-            <p>Telefono: {user?.phone ?? '--'}</p>
+            <p>Teléfono: {user?.phone ?? '--'}</p>
           </div>
+
           {!user && !loadingUser ? (
             <div className="rounded-md bg-amber-50 px-4 py-2 text-sm text-amber-900">
               Tu sesión no está disponible. Inicia sesión nuevamente para continuar.
@@ -137,6 +183,7 @@ export default function AuctionRegistrationPage() {
               </div>
             </div>
           ) : null}
+
           <p className="text-xs text-muted-foreground">
             Para solicitar cambios en tus datos, ve a{' '}
             <Link className="underline underline-offset-2" href="/profile">
@@ -144,6 +191,7 @@ export default function AuctionRegistrationPage() {
             </Link>
             . Los cambios deben ser aprobados por el administrador.
           </p>
+
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
@@ -152,6 +200,7 @@ export default function AuctionRegistrationPage() {
             />
             Acepto términos y condiciones del remate.
           </label>
+
           <Button onClick={apply} disabled={loading || loadingUser || !acceptTerms || !user}>
             {loading || loadingUser ? 'Cargando...' : 'Continuar'}
           </Button>
@@ -185,9 +234,9 @@ export default function AuctionRegistrationPage() {
 
       {step === 3 ? (
         <section className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
-          <h2 className="text-sm font-semibold">Paso 3 - Confirmacion</h2>
-          <p className="text-sm">Tu solicitud fue enviada con estado: Pendiente de revision.</p>
-          <p className="text-sm">Tiempo estimado de aprobacion: dentro de 24 horas.</p>
+          <h2 className="text-sm font-semibold">Paso 3 - Confirmación</h2>
+          <p className="text-sm">Tu solicitud fue enviada con estado: Pendiente de revisión.</p>
+          <p className="text-sm">Tiempo estimado de aprobación: dentro de 24 horas.</p>
           <Button onClick={() => router.push(`/auctions/${auctionId}`)}>Volver al remate</Button>
         </section>
       ) : null}

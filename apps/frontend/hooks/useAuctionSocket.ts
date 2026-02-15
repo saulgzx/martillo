@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '@/store/auth.store';
+import { apiClient } from '@/lib/api';
 
 export type BidUpdate = {
   lotId: string;
@@ -46,6 +47,88 @@ export function useAuctionSocket(auctionId: string) {
   } | null>(null);
 
   const accessToken = useAuthStore((s) => s.accessToken);
+
+  // REST fallback: the current codebase mixes a partial socket engine with REST admin actions.
+  // Poll the active lot so bidder UI updates even when no socket event is emitted.
+  useEffect(() => {
+    if (!auctionId) return;
+
+    const hasAuthCookie =
+      typeof document !== 'undefined' && document.cookie.includes('martillo_auth=1');
+
+    // If there is no in-memory token yet, we can still try polling; axios will attempt refresh
+    // using the cookie flag + refreshToken cookie.
+    if (!accessToken && !hasAuthCookie) return;
+
+    let cancelled = false;
+    let consecutiveErrors = 0;
+
+    const fetchActiveLot = async () => {
+      try {
+        const response = await apiClient.get<{
+          success: boolean;
+          data: Array<{
+            id: string;
+            title: string;
+            description: string | null;
+            basePrice: string;
+            currentPrice: string;
+            minIncrement: string;
+            category: string | null;
+            orderIndex: number;
+            status: string;
+            media: Array<{ id: string; url: string; type: string }>;
+          }>;
+        }>(`/api/auctions/${auctionId}/lots`);
+
+        const next = response.data.data.find((lot) => lot.status === 'ACTIVE') ?? null;
+        if (cancelled) return;
+
+        consecutiveErrors = 0;
+        setLastError(null);
+
+        setActiveLot((prev) => {
+          if (!next) return null;
+          if (prev?.id === next.id) {
+            // Keep current lot but allow price to be refreshed via polling too.
+            if (prev.currentPrice !== next.currentPrice) {
+              return { ...prev, currentPrice: next.currentPrice };
+            }
+            return prev;
+          }
+          return {
+            id: next.id,
+            title: next.title,
+            description: next.description,
+            basePrice: next.basePrice,
+            currentPrice: next.currentPrice,
+            minIncrement: next.minIncrement,
+            category: next.category,
+            orderIndex: next.orderIndex,
+            media: next.media ?? [],
+          };
+        });
+      } catch (err: unknown) {
+        consecutiveErrors += 1;
+        if (cancelled) return;
+
+        const status = (err as { response?: { status?: number } })?.response?.status;
+        // Don't spam UI; only show after a couple consecutive failures.
+        if (consecutiveErrors >= 2) {
+          if (status === 401) setLastError('No autorizado. Reintenta iniciar sesión.');
+          else if (status === 403) setLastError('Sin permisos para ver la sala.');
+          else setLastError('No se pudo sincronizar el lote activo.');
+        }
+      }
+    };
+
+    void fetchActiveLot();
+    const timer = setInterval(fetchActiveLot, 1500);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [accessToken, auctionId]);
 
   useEffect(() => {
     if (!accessToken || !auctionId) return;
@@ -102,6 +185,10 @@ export function useAuctionSocket(auctionId: string) {
 
     socket.on('bid:update', (data: BidUpdate) => {
       setBidHistory((prev) => [data, ...prev].slice(0, 50));
+      setActiveLot((prev) => {
+        if (!prev || prev.id !== data.lotId) return prev;
+        return { ...prev, currentPrice: data.newAmount };
+      });
     });
 
     socket.on('bid:rejected', (data: { reason: string }) => {

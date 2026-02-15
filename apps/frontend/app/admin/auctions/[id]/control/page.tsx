@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { apiClient } from '@/lib/api';
 import { useAuctionSocket } from '@/hooks/useAuctionSocket';
 import { ConnectionStatus } from '@/components/auction/ConnectionStatus';
 import { PriceDisplay } from '@/components/auction/PriceDisplay';
@@ -22,76 +23,94 @@ export default function AuctioneerControlPage() {
     connectedCount,
     activeLot,
     bidHistory,
-    lastError,
+    lastError: socketError,
     isPaused,
+    pauseReason,
     isEnded,
     auctioneerControls,
   } = useAuctionSocket(auctionId);
 
-  const [presencialPaddle, setPresencialPaddle] = useState('');
-  const [presencialAmount, setPresencialAmount] = useState('');
-  const [confirmAction, setConfirmAction] = useState<null | 'adjudicate' | 'end'>(null);
+  const [busy, setBusy] = useState(false);
+  const [uiError, setUiError] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<
+    null | 'adjudicate' | 'skip' | 'pause' | 'resume' | 'end'
+  >(null);
 
-  if (isEnded) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold">Remate finalizado</h1>
-          <p className="mt-2 text-muted-foreground">Todos los lotes han sido procesados.</p>
-        </div>
-      </div>
-    );
-  }
+  const coverImage = useMemo(
+    () => activeLot?.media?.find((m) => m.type === 'IMAGE') ?? null,
+    [activeLot],
+  );
 
   const currentPrice = activeLot ? Number(activeLot.currentPrice) : 0;
   const minIncrement = activeLot ? Number(activeLot.minIncrement) : 0;
-  const coverImage = activeLot?.media?.find((m) => m.type === 'IMAGE');
 
-  const handlePresencialBid = () => {
-    const paddle = parseInt(presencialPaddle, 10);
-    const amount = parseFloat(presencialAmount);
-    if (!activeLot || isNaN(paddle) || isNaN(amount)) return;
-    auctioneerControls.bidPresencial(activeLot.id, amount, paddle);
-    setPresencialAmount('');
+  const handleNextLot = async () => {
+    setBusy(true);
+    setUiError(null);
+    try {
+      // Prefer socket (true real-time), fallback to REST (dev scaffolding).
+      if (connectionState === 'connected') {
+        auctioneerControls.nextLot();
+        return;
+      }
+      await apiClient.post(`/api/auctions/${auctionId}/lots/next`);
+    } catch {
+      setUiError('No se pudo activar el siguiente lote.');
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Header */}
       <header className="flex items-center justify-between">
         <h1 className="text-xl font-bold">Panel del Rematador</h1>
         <ConnectionStatus state={connectionState} connectedCount={connectedCount} />
       </header>
 
-      {lastError && (
-        <div className="rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">{lastError}</div>
-      )}
+      {socketError ? (
+        <div className="rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">{socketError}</div>
+      ) : null}
+      {uiError ? (
+        <div className="rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">{uiError}</div>
+      ) : null}
+      {isEnded ? (
+        <div className="rounded-md bg-slate-50 px-4 py-2 text-sm text-slate-700">
+          Remate finalizado.
+        </div>
+      ) : isPaused ? (
+        <div className="rounded-md bg-amber-50 px-4 py-2 text-sm text-amber-800">
+          Subasta en pausa{pauseReason ? `: ${pauseReason}` : '.'}
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_400px]">
-        {/* Left: Active lot + bid history */}
         <div className="flex flex-col gap-4">
           {activeLot ? (
             <>
               <div className="rounded-lg border bg-card p-4">
                 <div className="flex gap-4">
-                  {coverImage && (
+                  {coverImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={coverImage.url}
                       alt={activeLot.title}
                       className="h-32 w-32 rounded-md object-cover"
                     />
+                  ) : (
+                    <div className="h-32 w-32 rounded-md bg-muted" />
                   )}
                   <div className="flex-1">
                     <p className="text-xs text-muted-foreground">
                       Lote #{activeLot.orderIndex}
-                      {activeLot.category && ` · ${activeLot.category}`}
+                      {activeLot.category ? ` - ${activeLot.category}` : ''}
                     </p>
                     <h2 className="text-xl font-bold">{activeLot.title}</h2>
-                    {activeLot.description && (
+                    {activeLot.description ? (
                       <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
                         {activeLot.description}
                       </p>
-                    )}
+                    ) : null}
                   </div>
                 </div>
 
@@ -100,35 +119,6 @@ export default function AuctioneerControlPage() {
                 </div>
               </div>
 
-              {/* Presencial bid input */}
-              <div className="rounded-lg border bg-card p-4">
-                <h3 className="mb-3 text-sm font-semibold">Registrar puja presencial</h3>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    placeholder="Paleta #"
-                    value={presencialPaddle}
-                    onChange={(e) => setPresencialPaddle(e.target.value)}
-                    className="w-24 rounded-md border bg-background px-3 py-2 text-sm"
-                  />
-                  <input
-                    type="number"
-                    placeholder={`Monto (mín ${formatCLP(currentPrice + minIncrement)})`}
-                    value={presencialAmount}
-                    onChange={(e) => setPresencialAmount(e.target.value)}
-                    className="flex-1 rounded-md border bg-background px-3 py-2 text-sm"
-                  />
-                  <Button
-                    onClick={handlePresencialBid}
-                    disabled={!presencialPaddle || !presencialAmount}
-                    className="bg-brand-navy hover:bg-brand-navy/90"
-                  >
-                    REGISTRAR
-                  </Button>
-                </div>
-              </div>
-
-              {/* Bid history */}
               <div className="rounded-lg border bg-card p-4">
                 <h3 className="mb-3 text-sm font-semibold">Historial de pujas</h3>
                 <BidHistory bids={bidHistory} />
@@ -139,83 +129,81 @@ export default function AuctioneerControlPage() {
               <div className="text-center">
                 <p className="text-lg font-medium text-muted-foreground">Sin lote activo</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Presiona &quot;Siguiente lote&quot; para activar el próximo
+                  Presiona Siguiente lote para activar el proximo.
                 </p>
               </div>
             </div>
           )}
         </div>
 
-        {/* Right: Controls */}
         <div className="flex flex-col gap-4">
-          {/* Control buttons */}
           <div className="rounded-lg border bg-card p-4">
             <h3 className="mb-4 text-sm font-semibold">Controles</h3>
             <div className="flex flex-col gap-3">
-              {/* Adjudicate */}
               <Button
                 size="lg"
-                disabled={!activeLot || bidHistory.length === 0}
+                disabled={
+                  !activeLot ||
+                  bidHistory.length === 0 ||
+                  connectionState !== 'connected' ||
+                  isPaused ||
+                  isEnded
+                }
                 onClick={() => setConfirmAction('adjudicate')}
                 className="w-full bg-green-600 py-6 text-lg font-bold hover:bg-green-700"
               >
                 ADJUDICAR
               </Button>
 
-              {/* Next lot */}
               <Button
                 size="lg"
-                onClick={() => auctioneerControls.nextLot()}
+                onClick={() => void handleNextLot()}
+                disabled={busy || isPaused || isEnded}
                 className="w-full bg-brand-blue py-4 font-semibold hover:bg-brand-blue/90"
               >
-                SIGUIENTE LOTE
+                {busy ? 'ACTIVANDO...' : 'SIGUIENTE LOTE'}
               </Button>
 
-              {/* Skip lot */}
               <Button
                 size="lg"
                 variant="secondary"
-                disabled={!activeLot}
-                onClick={() => {
-                  if (activeLot) auctioneerControls.skipLot(activeLot.id);
-                }}
+                disabled={!activeLot || connectionState !== 'connected' || isEnded}
+                onClick={() => setConfirmAction('skip')}
                 className="w-full py-4 font-semibold"
               >
                 SALTAR LOTE
               </Button>
 
-              {/* Pause / Resume */}
-              {isPaused ? (
-                <Button
-                  size="lg"
-                  onClick={() => auctioneerControls.resume()}
-                  className="w-full bg-green-600 py-4 font-semibold hover:bg-green-700"
-                >
-                  REANUDAR
-                </Button>
-              ) : (
-                <Button
-                  size="lg"
-                  onClick={() => auctioneerControls.pause()}
-                  className="w-full bg-amber-500 py-4 font-semibold text-white hover:bg-amber-600"
-                >
-                  PAUSAR
-                </Button>
-              )}
+              <Button
+                size="lg"
+                disabled={connectionState !== 'connected' || isEnded}
+                onClick={() => setConfirmAction(isPaused ? 'resume' : 'pause')}
+                className={
+                  isPaused
+                    ? 'w-full bg-emerald-600 py-4 font-semibold text-white hover:bg-emerald-700'
+                    : 'w-full bg-amber-500 py-4 font-semibold text-white hover:bg-amber-600'
+                }
+              >
+                {isPaused ? 'REANUDAR' : 'PAUSAR'}
+              </Button>
 
-              {/* End auction */}
               <Button
                 size="lg"
                 variant="destructive"
+                disabled={connectionState !== 'connected' || isEnded}
                 onClick={() => setConfirmAction('end')}
                 className="w-full py-4 font-semibold"
               >
                 FINALIZAR REMATE
               </Button>
             </div>
+            {activeLot ? (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Incremento minimo: {formatCLP(minIncrement)}
+              </p>
+            ) : null}
           </div>
 
-          {/* Stats */}
           <div className="rounded-lg border bg-card p-4">
             <h3 className="mb-2 text-sm font-semibold">Estado</h3>
             <div className="space-y-1 text-sm">
@@ -230,7 +218,11 @@ export default function AuctioneerControlPage() {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Estado</span>
                 <span className="font-medium">
-                  {isPaused ? 'En pausa' : activeLot ? 'En vivo' : 'Esperando'}
+                  {activeLot
+                    ? 'En vivo'
+                    : connectionState === 'connected'
+                      ? 'Esperando'
+                      : 'Sin conexión'}
                 </span>
               </div>
             </div>
@@ -238,30 +230,84 @@ export default function AuctioneerControlPage() {
         </div>
       </div>
 
-      {/* Confirm modals */}
-      {confirmAction && (
+      {confirmAction ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="mx-4 w-full max-w-sm rounded-xl border bg-card p-6 shadow-lg">
             <h3 className="text-lg font-semibold">
-              {confirmAction === 'adjudicate' ? 'Confirmar adjudicación' : 'Finalizar remate'}
+              {confirmAction === 'adjudicate'
+                ? 'Confirmar adjudicacion'
+                : confirmAction === 'skip'
+                  ? 'Saltar lote'
+                  : confirmAction === 'pause'
+                    ? 'Pausar subasta'
+                    : confirmAction === 'resume'
+                      ? 'Reanudar subasta'
+                      : 'Finalizar remate'}
             </h3>
             <p className="mt-2 text-sm text-muted-foreground">
               {confirmAction === 'adjudicate'
-                ? `¿Adjudicar el lote "${activeLot?.title}" al mejor postor por ${formatCLP(currentPrice)}?`
-                : '¿Estás seguro de finalizar el remate? Los lotes restantes quedarán como no vendidos.'}
+                ? `Adjudicar el lote ${activeLot?.title ?? ''} por ${formatCLP(currentPrice)}?`
+                : confirmAction === 'skip'
+                  ? `Marcar el lote ${activeLot?.title ?? ''} como no vendido y avanzar?`
+                  : confirmAction === 'pause'
+                    ? 'Pausar la subasta para todos los participantes?'
+                    : confirmAction === 'resume'
+                      ? 'Reanudar la subasta para todos los participantes?'
+                      : 'Estas seguro de finalizar el remate?'}
             </p>
             <div className="mt-6 flex gap-3">
               <Button variant="outline" className="flex-1" onClick={() => setConfirmAction(null)}>
                 Cancelar
               </Button>
               <Button
-                className={`flex-1 ${confirmAction === 'end' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
+                className={`flex-1 ${
+                  confirmAction === 'end'
+                    ? 'bg-red-600 hover:bg-red-700'
+                    : confirmAction === 'pause'
+                      ? 'bg-amber-600 hover:bg-amber-700'
+                      : confirmAction === 'resume'
+                        ? 'bg-emerald-600 hover:bg-emerald-700'
+                        : 'bg-green-600 hover:bg-green-700'
+                }`}
                 onClick={() => {
+                  setUiError(null);
+
+                  if (connectionState !== 'connected') {
+                    setUiError('Sin conexion al motor en tiempo real.');
+                    setConfirmAction(null);
+                    return;
+                  }
+
                   if (confirmAction === 'adjudicate' && activeLot) {
                     auctioneerControls.adjudicate(activeLot.id);
-                  } else if (confirmAction === 'end') {
-                    auctioneerControls.end();
+                    setConfirmAction(null);
+                    return;
                   }
+
+                  if (confirmAction === 'skip' && activeLot) {
+                    auctioneerControls.skipLot(activeLot.id);
+                    setConfirmAction(null);
+                    return;
+                  }
+
+                  if (confirmAction === 'pause') {
+                    auctioneerControls.pause();
+                    setConfirmAction(null);
+                    return;
+                  }
+
+                  if (confirmAction === 'resume') {
+                    auctioneerControls.resume();
+                    setConfirmAction(null);
+                    return;
+                  }
+
+                  if (confirmAction === 'end') {
+                    auctioneerControls.end();
+                    setConfirmAction(null);
+                    return;
+                  }
+
                   setConfirmAction(null);
                 }}
               >
@@ -270,7 +316,7 @@ export default function AuctioneerControlPage() {
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
