@@ -6,6 +6,9 @@ import { logger } from '../utils/logger';
 const redis = new Redis(env.REDIS_URL, {
   maxRetriesPerRequest: 3,
   enableReadyCheck: true,
+  // Fail fast in dev/prod when Redis is unavailable. We can fall back to memory.
+  enableOfflineQueue: false,
+  connectTimeout: 2000,
 });
 
 const memoryFallback = new Map<string, string>();
